@@ -1,5 +1,6 @@
 "use client";
 
+import Editor from "@/components/Editor";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -38,11 +39,8 @@ export default function Home() {
               defaultSize={isRightPanelVisible ? 70 : 100}
               minSize={30}
             >
-              <div className="h-[48px] w-full"></div>
-              <div className="w-full sticky top-[48px]">
-                <div className="z-50 sticky top-8 w-full border-b border-default-200 transition-all duration-200 overflow-x-scroll max-w-full no-scrollbar bg-white">
-                  <div className="h-[48px]"></div>
-                </div>
+              <div className="w-full transition-all duration-200 h-[calc(100vh-48px)] mt-[48px] overflow-y-scroll no-scrollbar relative editor-container">
+                <Editor />
               </div>
             </ResizablePanel>
             {isRightPanelVisible && (
@@ -51,7 +49,7 @@ export default function Home() {
                 <ResizablePanel defaultSize={30} minSize={30}>
                   <div className="flex-grow flex-shrink-0 h-[51px] w-full bg-white z-[2]"></div>
                   <div className="flex-grow flex-shrink relative w-full h-[calc(100vh-51px)]">
-                    <div className="border-b border-b-default-200 flex items-center justify-between bg-white gap-x-3 px-2 h-[46px] relative">
+                    <div className="border-b border-b-default-200 flex items-center justify-between bg-white gap-x-3 px-3 h-[46px] relative">
                       Composer
                     </div>
                   </div>
