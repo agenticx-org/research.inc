@@ -25,7 +25,9 @@ const Editor = () => {
       <div className="w-full sticky top-0 z-50 bg-white">
         <div className="z-50 w-full border-b border-default-200 transition-all duration-200 overflow-x-scroll max-w-full no-scrollbar">
           <div className="mx-auto w-fit">
-            <div className="h-[48px]"></div>
+            <div className="h-[48px] py-2 px-2 bg-white dark:bg-black">
+              <div className="flex items-center h-full py-1.5">Editor</div>
+            </div>
           </div>
         </div>
       </div>
