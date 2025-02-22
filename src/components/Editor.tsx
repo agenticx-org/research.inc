@@ -1,3 +1,9 @@
+import { cn } from "@/lib/utils";
+import {
+  TextBolder,
+  TextItalic,
+  TextStrikethrough,
+} from "@phosphor-icons/react";
 import Placeholder from "@tiptap/extension-placeholder";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -26,7 +32,41 @@ const Editor = () => {
         <div className="z-50 w-full border-b border-default-200 transition-all duration-200 overflow-x-scroll max-w-full no-scrollbar">
           <div className="mx-auto w-fit">
             <div className="h-[48px] py-2 px-2 bg-white dark:bg-black">
-              <div className="flex items-center h-full py-1.5">Editor</div>
+              <div className="flex items-center h-full py-1.5 gap-2">
+                <button
+                  onClick={() => editor?.chain().focus().toggleBold().run()}
+                  className={cn([
+                    "p-1 rounded transition-colors duration-200",
+                    editor?.isActive("bold")
+                      ? "bg-black text-white dark:bg-white dark:text-black"
+                      : "hover:bg-gray-100 dark:hover:bg-gray-700",
+                  ])}
+                >
+                  <TextBolder size={16} />
+                </button>
+                <button
+                  onClick={() => editor?.chain().focus().toggleItalic().run()}
+                  className={cn([
+                    "p-1 rounded transition-colors duration-200",
+                    editor?.isActive("italic")
+                      ? "bg-black text-white dark:bg-white dark:text-black"
+                      : "hover:bg-gray-100 dark:hover:bg-gray-700",
+                  ])}
+                >
+                  <TextItalic size={16} />
+                </button>
+                <button
+                  onClick={() => editor?.chain().focus().toggleStrike().run()}
+                  className={cn([
+                    "p-1 rounded transition-colors duration-200",
+                    editor?.isActive("strike")
+                      ? "bg-black text-white dark:bg-white dark:text-black"
+                      : "hover:bg-gray-100 dark:hover:bg-gray-700",
+                  ])}
+                >
+                  <TextStrikethrough size={16} />
+                </button>
+              </div>
             </div>
           </div>
         </div>
