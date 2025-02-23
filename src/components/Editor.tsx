@@ -7,7 +7,13 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import {
+  ListBullets,
+  ListNumbers,
+  TextAa,
   TextBolder,
+  TextH,
+  TextHThree,
+  TextHTwo,
   TextItalic,
   TextStrikethrough,
   TextT,
@@ -30,6 +36,16 @@ const FONTS = [
   { label: "Verdana", value: "Verdana" },
 ];
 
+// Add this near the FONTS array
+const TEXT_STYLES = [
+  { label: "Paragraph", value: "paragraph", icon: TextAa },
+  { label: "Heading 1", value: "heading-1", icon: TextH },
+  { label: "Heading 2", value: "heading-2", icon: TextHTwo },
+  { label: "Heading 3", value: "heading-3", icon: TextHThree },
+  { label: "Bullet List", value: "bullet-list", icon: ListBullets },
+  { label: "Numbered List", value: "numbered-list", icon: ListNumbers },
+];
+
 const Editor = () => {
   const editor = useEditor({
     extensions: [
@@ -44,8 +60,7 @@ const Editor = () => {
     content: "",
     editorProps: {
       attributes: {
-        class:
-          "prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none",
+        class: "prose prose-sm sm:prose mx-auto focus:outline-none",
       },
     },
   });
@@ -57,6 +72,76 @@ const Editor = () => {
           <div className="mx-auto w-fit">
             <div className="h-[48px] py-2 px-2 bg-white dark:bg-black">
               <div className="flex items-center h-full py-1.5 gap-2">
+                <Select
+                  value={
+                    editor?.isActive("paragraph")
+                      ? "paragraph"
+                      : editor?.isActive("heading", { level: 1 })
+                      ? "heading-1"
+                      : editor?.isActive("heading", { level: 2 })
+                      ? "heading-2"
+                      : editor?.isActive("heading", { level: 3 })
+                      ? "heading-3"
+                      : editor?.isActive("bulletList")
+                      ? "bullet-list"
+                      : editor?.isActive("orderedList")
+                      ? "numbered-list"
+                      : "paragraph"
+                  }
+                  onValueChange={(value) => {
+                    switch (value) {
+                      case "paragraph":
+                        editor?.chain().focus().setParagraph().run();
+                        break;
+                      case "heading-1":
+                        editor
+                          ?.chain()
+                          .focus()
+                          .toggleHeading({ level: 1 })
+                          .run();
+                        break;
+                      case "heading-2":
+                        editor
+                          ?.chain()
+                          .focus()
+                          .toggleHeading({ level: 2 })
+                          .run();
+                        break;
+                      case "heading-3":
+                        editor
+                          ?.chain()
+                          .focus()
+                          .toggleHeading({ level: 3 })
+                          .run();
+                        break;
+                      case "bullet-list":
+                        editor?.chain().focus().toggleBulletList().run();
+                        break;
+                      case "numbered-list":
+                        editor?.chain().focus().toggleOrderedList().run();
+                        break;
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-[150px] h-8 border-none shadow-none focus:ring-0 focus:ring-offset-0 pr-0">
+                    <SelectValue placeholder="Paragraph" />
+                  </SelectTrigger>
+                  <SelectContent className="p-1 rounded-xl shadow-lg">
+                    {TEXT_STYLES.map((style) => (
+                      <SelectItem
+                        key={style.value}
+                        value={style.value}
+                        className="py-2"
+                      >
+                        <div className="flex items-center gap-2">
+                          <style.icon size={16} />
+                          {style.label}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Separator orientation="vertical" />
                 <Select
                   value={
                     editor?.getAttributes("textStyle").fontFamily || "default"
