@@ -386,7 +386,7 @@ const Editor = () => {
                     </button>
                   </TooltipTrigger>
                   <TooltipContent className="px-2 py-1 text-xs">
-                    Left (⌘L)
+                    Left
                   </TooltipContent>
                 </Tooltip>
                 <Tooltip>
@@ -406,7 +406,7 @@ const Editor = () => {
                     </button>
                   </TooltipTrigger>
                   <TooltipContent className="px-2 py-1 text-xs">
-                    Center (⌘E)
+                    Center
                   </TooltipContent>
                 </Tooltip>
                 <Tooltip>
@@ -426,7 +426,7 @@ const Editor = () => {
                     </button>
                   </TooltipTrigger>
                   <TooltipContent className="px-2 py-1 text-xs">
-                    Right (⌘R)
+                    Right
                   </TooltipContent>
                 </Tooltip>
                 <Tooltip>
@@ -446,7 +446,7 @@ const Editor = () => {
                     </button>
                   </TooltipTrigger>
                   <TooltipContent className="px-2 py-1 text-xs">
-                    Justify (⌘J)
+                    Justify
                   </TooltipContent>
                 </Tooltip>
                 <Separator orientation="vertical" />
