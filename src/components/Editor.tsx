@@ -11,6 +11,10 @@ import {
   ListBullets,
   ListNumbers,
   TextAa,
+  TextAlignCenter,
+  TextAlignJustify,
+  TextAlignLeft,
+  TextAlignRight,
   TextBolder,
   TextH,
   TextHThree,
@@ -23,6 +27,7 @@ import {
 import FontFamily from "@tiptap/extension-font-family";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
+import TextAlign from "@tiptap/extension-text-align";
 import TextStyle from "@tiptap/extension-text-style";
 import Underline from "@tiptap/extension-underline";
 import { EditorContent, useEditor } from "@tiptap/react";
@@ -62,6 +67,11 @@ const Editor = () => {
         HTMLAttributes: {
           class: "text-blue-500 hover:underline cursor-pointer",
         },
+      }),
+      TextAlign.configure({
+        types: ["heading", "paragraph"],
+        alignments: ["left", "center", "right", "justify"],
+        defaultAlignment: "left",
       }),
       Placeholder.configure({
         placeholder:
@@ -268,6 +278,59 @@ const Editor = () => {
                   ])}
                 >
                   <LinkIcon size={16} />
+                </button>
+                <Separator orientation="vertical" />
+                <button
+                  onClick={() =>
+                    editor?.chain().focus().setTextAlign("left").run()
+                  }
+                  className={cn([
+                    "p-1 rounded transition-colors duration-200",
+                    editor?.isActive({ textAlign: "left" })
+                      ? "bg-black text-white dark:bg-white dark:text-black"
+                      : "hover:bg-gray-100 dark:hover:bg-gray-700",
+                  ])}
+                >
+                  <TextAlignLeft size={16} />
+                </button>
+                <button
+                  onClick={() =>
+                    editor?.chain().focus().setTextAlign("center").run()
+                  }
+                  className={cn([
+                    "p-1 rounded transition-colors duration-200",
+                    editor?.isActive({ textAlign: "center" })
+                      ? "bg-black text-white dark:bg-white dark:text-black"
+                      : "hover:bg-gray-100 dark:hover:bg-gray-700",
+                  ])}
+                >
+                  <TextAlignCenter size={16} />
+                </button>
+                <button
+                  onClick={() =>
+                    editor?.chain().focus().setTextAlign("right").run()
+                  }
+                  className={cn([
+                    "p-1 rounded transition-colors duration-200",
+                    editor?.isActive({ textAlign: "right" })
+                      ? "bg-black text-white dark:bg-white dark:text-black"
+                      : "hover:bg-gray-100 dark:hover:bg-gray-700",
+                  ])}
+                >
+                  <TextAlignRight size={16} />
+                </button>
+                <button
+                  onClick={() =>
+                    editor?.chain().focus().setTextAlign("justify").run()
+                  }
+                  className={cn([
+                    "p-1 rounded transition-colors duration-200",
+                    editor?.isActive({ textAlign: "justify" })
+                      ? "bg-black text-white dark:bg-white dark:text-black"
+                      : "hover:bg-gray-100 dark:hover:bg-gray-700",
+                  ])}
+                >
+                  <TextAlignJustify size={16} />
                 </button>
               </div>
             </div>
