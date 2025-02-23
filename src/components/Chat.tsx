@@ -13,7 +13,7 @@ import {
   SelectItem,
   SelectTrigger,
 } from "@/components/ui/select";
-import { ArrowUp, Paperclip, Square } from "@phosphor-icons/react";
+import { ArrowRight, Paperclip, Square } from "@phosphor-icons/react";
 import Image from "next/image";
 import React, { useState } from "react";
 
@@ -107,7 +107,7 @@ const Chat: React.FC = () => {
             className="bg-white"
           >
             <PromptInputTextarea
-              placeholder="Ask me anything..."
+              placeholder="Ask me to do anything..."
               className="px-1"
             />
             <PromptInputActions className="flex w-full items-center gap-2 justify-between">
@@ -185,18 +185,18 @@ const Chat: React.FC = () => {
                 </PromptInputAction>
               </div>
               <PromptInputAction
-                tooltip={isLoading ? "Stop generation" : "Send message"}
+                tooltip={isLoading ? "Stop generation" : "Send message (Enter)"}
               >
                 <Button
                   size="icon"
-                  className="h-8 w-8 rounded-full"
+                  className="h-7 w-7"
                   onClick={handleSubmit}
                   disabled={!message.trim() && files.length === 0}
                 >
                   {isLoading ? (
                     <Square className="size-5 fill-current" weight="fill" />
                   ) : (
-                    <ArrowUp className="size-5" weight="regular" />
+                    <ArrowRight className="size-4" weight="regular" />
                   )}
                 </Button>
               </PromptInputAction>
