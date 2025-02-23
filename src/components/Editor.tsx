@@ -1,17 +1,41 @@
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import {
   TextBolder,
   TextItalic,
   TextStrikethrough,
+  TextT,
 } from "@phosphor-icons/react";
+import FontFamily from "@tiptap/extension-font-family";
 import Placeholder from "@tiptap/extension-placeholder";
+import TextStyle from "@tiptap/extension-text-style";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import { Separator } from "./ui/separator";
+
+// Define available fonts
+const FONTS = [
+  { label: "Lausanne", value: "Lausanne" },
+  { label: "Arial", value: "Arial" },
+  { label: "Helvetica", value: "Helvetica" },
+  { label: "Times New Roman", value: "Times New Roman" },
+  { label: "Courier New", value: "Courier New" },
+  { label: "Georgia", value: "Georgia" },
+  { label: "Verdana", value: "Verdana" },
+];
 
 const Editor = () => {
   const editor = useEditor({
     extensions: [
       StarterKit,
+      TextStyle,
+      FontFamily,
       Placeholder.configure({
         placeholder:
           "⌘K to autogenerate content anywhere on canvas, or type '/' for blocks...",
@@ -33,6 +57,41 @@ const Editor = () => {
           <div className="mx-auto w-fit">
             <div className="h-[48px] py-2 px-2 bg-white dark:bg-black">
               <div className="flex items-center h-full py-1.5 gap-2">
+                <Select
+                  value={
+                    editor?.getAttributes("textStyle").fontFamily || "default"
+                  }
+                  onValueChange={(value) => {
+                    editor
+                      ?.chain()
+                      .focus()
+                      .setFontFamily(value === "default" ? "" : value)
+                      .run();
+                  }}
+                >
+                  <SelectTrigger className="w-[150px] h-8 border-none shadow-none focus:ring-0 focus:ring-offset-0 pr-0">
+                    <div className="flex items-center gap-1">
+                      <TextT size={14} />
+                      <SelectValue placeholder="Font family" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent className="p-1 rounded-xl shadow-lg">
+                    <SelectItem value="default" className="py-2">
+                      Geist Sans
+                    </SelectItem>
+                    {FONTS.map((font) => (
+                      <SelectItem
+                        key={font.value}
+                        value={font.value}
+                        style={{ fontFamily: font.value }}
+                        className="py-2 text-xs"
+                      >
+                        {font.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Separator orientation="vertical" />
                 <button
                   onClick={() => editor?.chain().focus().toggleBold().run()}
                   className={cn([
