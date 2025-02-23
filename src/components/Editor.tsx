@@ -112,7 +112,8 @@ const Editor = () => {
     content: "",
     editorProps: {
       attributes: {
-        class: "prose prose-sm sm:prose mx-auto focus:outline-none",
+        class:
+          "prose prose-sm sm:prose sm:max-w-none max-w-none w-full focus:outline-none",
       },
     },
   });
