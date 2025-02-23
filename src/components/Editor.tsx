@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import {
+  Link as LinkIcon,
   ListBullets,
   ListNumbers,
   TextAa,
@@ -17,10 +18,13 @@ import {
   TextItalic,
   TextStrikethrough,
   TextT,
+  TextUnderline,
 } from "@phosphor-icons/react";
 import FontFamily from "@tiptap/extension-font-family";
+import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import TextStyle from "@tiptap/extension-text-style";
+import Underline from "@tiptap/extension-underline";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Separator } from "./ui/separator";
@@ -52,6 +56,13 @@ const Editor = () => {
       StarterKit,
       TextStyle,
       FontFamily,
+      Underline,
+      Link.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+          class: "text-blue-500 hover:underline cursor-pointer",
+        },
+      }),
       Placeholder.configure({
         placeholder:
           "⌘K to autogenerate content anywhere on canvas, or type '/' for blocks...",
@@ -64,6 +75,30 @@ const Editor = () => {
       },
     },
   });
+
+  const setLink = () => {
+    const previousUrl = editor?.getAttributes("link").href;
+    const url = window.prompt("URL", previousUrl);
+
+    // cancelled
+    if (url === null) {
+      return;
+    }
+
+    // empty
+    if (url === "") {
+      editor?.chain().focus().extendMarkRange("link").unsetLink().run();
+      return;
+    }
+
+    // update link
+    editor
+      ?.chain()
+      .focus()
+      .extendMarkRange("link")
+      .setLink({ href: url })
+      .run();
+  };
 
   return (
     <>
@@ -209,6 +244,30 @@ const Editor = () => {
                   ])}
                 >
                   <TextStrikethrough size={16} />
+                </button>
+                <button
+                  onClick={() =>
+                    editor?.chain().focus().toggleUnderline().run()
+                  }
+                  className={cn([
+                    "p-1 rounded transition-colors duration-200",
+                    editor?.isActive("underline")
+                      ? "bg-black text-white dark:bg-white dark:text-black"
+                      : "hover:bg-gray-100 dark:hover:bg-gray-700",
+                  ])}
+                >
+                  <TextUnderline size={16} />
+                </button>
+                <button
+                  onClick={setLink}
+                  className={cn([
+                    "p-1 rounded transition-colors duration-200",
+                    editor?.isActive("link")
+                      ? "bg-black text-white dark:bg-white dark:text-black"
+                      : "hover:bg-gray-100 dark:hover:bg-gray-700",
+                  ])}
+                >
+                  <LinkIcon size={16} />
                 </button>
               </div>
             </div>
