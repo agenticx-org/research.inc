@@ -13,9 +13,16 @@ import {
   SelectItem,
   SelectTrigger,
 } from "@/components/ui/select";
-import { ArrowRight, Paperclip, Square, User } from "@phosphor-icons/react";
+import {
+  ArrowRight,
+  Infinity,
+  Paperclip,
+  Square,
+  User,
+} from "@phosphor-icons/react";
 import Image from "next/image";
 import React, { useState } from "react";
+import Aurora from "./animation/Aurora";
 
 const Chat: React.FC = () => {
   const [message, setMessage] = useState("");
@@ -101,26 +108,72 @@ const Chat: React.FC = () => {
     <>
       <div className="flex-grow flex-shrink-0 h-[51px] w-full bg-white z-[2]"></div>
       <div className="flex flex-col h-[calc(100vh-51px)]">
-        <div className="border-b border-b-default-200 flex items-center justify-between bg-white gap-x-3 px-3 h-[46px]">
+        <div className="border-b border-b-default-200 flex items-center justify-between bg-white gap-x-3 px-3 h-[46px] font-medium">
           Agent
         </div>
+        {messages.length === 0 && (
+          <div className="h-42">
+            <Aurora
+              colorStops={["#1a1a1a", "#2d3436", "#636e72"]}
+              blend={0.5}
+              amplitude={1.0}
+              speed={0.5}
+            />
+          </div>
+        )}
         <div className="flex-1 overflow-y-auto p-4 scrollbar-custom">
-          {messages.map((msg, idx) => (
-            <div key={idx} className="flex items-start gap-2 mb-4">
-              {msg.role === "user" ? (
-                <div className="w-7 h-7 overflow-hidden flex items-center justify-center">
-                  <User className="size-5 text-black" weight="regular" />
+          {messages.length === 0 ? (
+            <div className="h-full flex items-end">
+              <div className="flex flex-col mb-4 transition-all duration-200 w-full">
+                <div className="flex flex-col">
+                  <div className="text-[35px] gradient-text leading-tight">
+                    Hello Nick
+                  </div>
+                  <div className="text-[28px] text-default-900 leading-tight">
+                    What are we working on today?
+                  </div>
                 </div>
-              ) : (
-                <div className="w-7 h-7 rounded-lg items-center flex justify-center">
-                  <Image src="/research.svg" alt="AI" width={24} height={24} />
+                <div className="my-1.5"></div>
+                <div className="border border-default-200 rounded-md p-2">
+                  <div className="inline-flex items-center gap-1 text-default-900">
+                    You are in
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-default-100 rounded-md bg-zinc-50 border text-sm">
+                      <Infinity className="size-4" weight="regular" />
+                      <span>Agent Mode</span>
+                    </div>
+                  </div>
+                  <div className="my-1.5"></div>
+                  <div className="text-sm text-default-900">
+                    <div className="flex flex-col gap-1 text-muted-foreground">
+                      Agent can directly edit and work on your canvas.
+                    </div>
+                  </div>
                 </div>
-              )}
-              <div className="flex-1">
-                <div className="text-gray-900 text-sm pt-1">{msg.text}</div>
               </div>
             </div>
-          ))}
+          ) : (
+            messages.map((msg, idx) => (
+              <div key={idx} className="flex items-start gap-2 mb-4">
+                {msg.role === "user" ? (
+                  <div className="w-7 h-7 overflow-hidden flex items-center justify-center">
+                    <User className="size-5 text-black" weight="regular" />
+                  </div>
+                ) : (
+                  <div className="w-7 h-7 rounded-lg items-center flex justify-center">
+                    <Image
+                      src="/research.svg"
+                      alt="AI"
+                      width={24}
+                      height={24}
+                    />
+                  </div>
+                )}
+                <div className="flex-1">
+                  <div className="text-gray-900 text-sm pt-1">{msg.text}</div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
         <div className="w-full px-2 pt-2 pb-2">
           <PromptInput
