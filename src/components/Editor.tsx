@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import {
+  Code as CodeIcon,
   Link as LinkIcon,
   ListBullets,
   ListNumbers,
@@ -32,10 +33,12 @@ import {
   TextT,
   TextUnderline,
 } from "@phosphor-icons/react";
+import Code from "@tiptap/extension-code";
 import Color from "@tiptap/extension-color";
 import FontFamily from "@tiptap/extension-font-family";
 import FontSize from "@tiptap/extension-font-size";
 import Highlight from "@tiptap/extension-highlight";
+import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import TextAlign from "@tiptap/extension-text-align";
@@ -106,6 +109,11 @@ const Editor = () => {
       Underline,
       TextStyle.configure(),
       Color.configure(),
+      Code.configure({
+        HTMLAttributes: {
+          class: "font-mono bg-gray-100 rounded px-1.5 py-0.5",
+        },
+      }),
       Link.configure({
         openOnClick: false,
         HTMLAttributes: {
@@ -123,6 +131,12 @@ const Editor = () => {
       }),
       Highlight.configure({
         multicolor: true,
+      }),
+      Image.configure({
+        HTMLAttributes: {
+          class: "max-w-full h-auto",
+        },
+        allowBase64: true,
       }),
     ],
     content: "",
@@ -400,6 +414,24 @@ const Editor = () => {
                   </TooltipTrigger>
                   <TooltipContent className="px-2 py-1 text-xs">
                     Underline (⌘U)
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => editor?.chain().focus().toggleCode().run()}
+                      className={cn([
+                        "p-1 rounded transition-colors duration-200",
+                        editor?.isActive("code")
+                          ? "bg-black text-white dark:bg-white dark:text-black"
+                          : "hover:bg-gray-100 dark:hover:bg-gray-700",
+                      ])}
+                    >
+                      <CodeIcon size={16} />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent className="px-2 py-1 text-xs">
+                    Code (⌘E)
                   </TooltipContent>
                 </Tooltip>
                 <Tooltip>
