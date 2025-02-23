@@ -12,23 +12,58 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select";
 import { ArrowUp, Paperclip, Square } from "@phosphor-icons/react";
+import Image from "next/image";
 import React, { useState } from "react";
 
 const Chat: React.FC = () => {
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
-  const [selectedModel, setSelectedModel] = useState("gpt4");
+  const [selectedModel, setSelectedModel] = useState("gemini-flash2");
 
   const MODEL_OPTIONS = [
-    { label: "GPT 4.0", value: "gpt4" },
-    { label: "Claude 3.5", value: "claude3.5" },
-    { label: "Sonnet", value: "sonnet" },
-    { label: "Gemini Flash 2.0", value: "gemini-flash2" },
-    { label: "o-3 mini", value: "o3mini" },
+    // Google models
+    {
+      label: "Gemini Flash 2.0",
+      value: "gemini-flash2",
+      icon: "/google-logo.webp",
+      description: "fastest, most detailed",
+    },
+    {
+      label: "Gemini Pro 1.5",
+      value: "gemini-pro",
+      icon: "/google-logo.webp",
+      description: "medium speed, paragraph/report like output",
+    },
+    // Anthropic models
+    {
+      label: "Claude 3.5 Sonnet",
+      value: "claude3.5",
+      icon: "/anthropic-logo.svg",
+      description: "medium speed, detailed write up like output",
+    },
+    // OpenAI models
+    {
+      label: "GPT-4o",
+      value: "gpt4",
+      icon: "/openai-logo.svg",
+      description: "medium speed, succint write up like output",
+    },
+    {
+      label: "o3-mini",
+      value: "o3mini",
+      icon: "/openai-logo.svg",
+      description: "slow, intelligent reasoning, research paper like output",
+    },
+    // Deepseek models
+    {
+      label: "Deepseek R1",
+      value: "deepseek",
+      icon: "/deepseek-logo.png",
+      description: "slowest, intelligent reasoning, highly detailed report",
+    },
   ];
 
   const handleSubmit = () => {
@@ -82,20 +117,57 @@ const Chat: React.FC = () => {
                     value={selectedModel}
                     onValueChange={(value) => setSelectedModel(value)}
                   >
-                    <SelectTrigger className="w-32 h-6 shadow-none focus:ring-0 focus:ring-offset-0 [&>svg]:rotate-180 text-xs">
-                      <SelectValue placeholder="Select LLM" />
+                    <SelectTrigger className="h-7 shadow-none focus:ring-0 focus:ring-offset-0 [&>svg]:rotate-180 text-xs flex-row-reverse pl-1.5">
+                      <div className="flex items-center gap-1 font-medium">
+                        <Image
+                          src={
+                            MODEL_OPTIONS.find(
+                              (opt) => opt.value === selectedModel
+                            )?.icon || ""
+                          }
+                          alt="Model logo"
+                          width={16}
+                          height={16}
+                          className="object-contain"
+                        />
+                        {
+                          MODEL_OPTIONS.find(
+                            (opt) => opt.value === selectedModel
+                          )?.label
+                        }
+                      </div>
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="p-1 rounded-xl shadow-lg">
                       {MODEL_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
+                        <SelectItem
+                          key={option.value}
+                          value={option.value}
+                          className="[&>span:first-child]:hidden py-2"
+                        >
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2">
+                              <Image
+                                src={option.icon}
+                                alt={`${option.label} logo`}
+                                width={16}
+                                height={16}
+                                className="object-contain"
+                              />
+                              <span className="font-medium">
+                                {option.label}
+                              </span>
+                            </div>
+                            <span className="text-gray-500 text-xs ml-6">
+                              {option.description}
+                            </span>
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </PromptInputAction>
                 <PromptInputAction tooltip="Attach files">
-                  <Button variant="outline" size="icon" className="h-6 w-6">
+                  <Button variant="outline" size="icon" className="h-7 w-7">
                     <label htmlFor="file-upload" className="cursor-pointer">
                       <input
                         type="file"
