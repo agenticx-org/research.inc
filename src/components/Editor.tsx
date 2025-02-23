@@ -74,7 +74,7 @@ const HIGHLIGHT_COLORS = [
 
 // Add this near your other constants
 const TEXT_COLORS = [
-  { label: "Default", value: "#000000" },
+  { label: "Black", value: "#000000" },
   { label: "Purple", value: "#9333EA" },
   { label: "Red", value: "#E11D48" },
   { label: "Blue", value: "#2563EB" },
@@ -479,9 +479,6 @@ const Editor = () => {
                             />
                           </SelectTrigger>
                           <SelectContent className="p-1 rounded-xl shadow-lg">
-                            <SelectItem value="default" className="py-2">
-                              Default color
-                            </SelectItem>
                             {TEXT_COLORS.map((color) => (
                               <SelectItem
                                 key={color.value}
