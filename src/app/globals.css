@@ -104,8 +104,6 @@
   scrollbar-width: none;
 }
 
-
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -113,4 +111,28 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Custom scrollbar styling */
+.scrollbar-custom::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* For Firefox */
+.scrollbar-custom {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
 }
