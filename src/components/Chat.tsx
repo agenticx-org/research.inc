@@ -13,7 +13,7 @@ import {
   SelectItem,
   SelectTrigger,
 } from "@/components/ui/select";
-import { ArrowRight, Paperclip, Square } from "@phosphor-icons/react";
+import { ArrowRight, Paperclip, Square, User } from "@phosphor-icons/react";
 import Image from "next/image";
 import React, { useState } from "react";
 
@@ -22,6 +22,9 @@ const Chat: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
   const [selectedModel, setSelectedModel] = useState("gemini-flash2");
+  const [messages, setMessages] = useState<
+    { role: "user" | "ai"; text: string }[]
+  >([]);
 
   const MODEL_OPTIONS = [
     // Google models
@@ -68,11 +71,17 @@ const Chat: React.FC = () => {
 
   const handleSubmit = () => {
     if (message.trim() || files.length > 0) {
+      const userMessage = { role: "user" as const, text: message };
+      setMessages((prev) => [...prev, userMessage]);
       setIsLoading(true);
+      setMessage("");
+      setFiles([]);
       setTimeout(() => {
+        setMessages((prev) => [
+          ...prev,
+          { role: "ai" as const, text: "This is a mock AI response." },
+        ]);
         setIsLoading(false);
-        setMessage("");
-        setFiles([]);
       }, 2000);
     }
   };
@@ -91,14 +100,29 @@ const Chat: React.FC = () => {
   return (
     <>
       <div className="flex-grow flex-shrink-0 h-[51px] w-full bg-white z-[2]"></div>
-      <div className="flex-grow flex-shrink relative w-full h-[calc(100vh-51px)]">
-        <div className="border-b border-b-default-200 flex items-center justify-between bg-white gap-x-3 px-3 h-[46px] relative">
+      <div className="flex flex-col h-[calc(100vh-51px)]">
+        <div className="border-b border-b-default-200 flex items-center justify-between bg-white gap-x-3 px-3 h-[46px]">
           Agent
         </div>
-        <div className="flex-grow flex-shrink w-full h-full overflow-y-scroll relative scrollbar-custom">
-          {/* Chat messages will go here */}
+        <div className="flex-1 overflow-y-auto p-4 scrollbar-custom">
+          {messages.map((msg, idx) => (
+            <div key={idx} className="flex items-start gap-2 mb-4">
+              {msg.role === "user" ? (
+                <div className="w-7 h-7 overflow-hidden flex items-center justify-center">
+                  <User className="size-5 text-black" weight="regular" />
+                </div>
+              ) : (
+                <div className="w-7 h-7 rounded-lg items-center flex justify-center">
+                  <Image src="/research.svg" alt="AI" width={24} height={24} />
+                </div>
+              )}
+              <div className="flex-1">
+                <div className="text-gray-900 text-sm pt-1">{msg.text}</div>
+              </div>
+            </div>
+          ))}
         </div>
-        <div className="w-full px-2 pt-2 absolute bottom-0 pb-2 space-y-2">
+        <div className="w-full px-2 pt-2 pb-2">
           <PromptInput
             isLoading={isLoading}
             value={message}
@@ -145,21 +169,25 @@ const Chat: React.FC = () => {
                           className="[&>span:first-child]:hidden py-2"
                         >
                           <div className="flex flex-col gap-1">
-                            <div className="flex items-center gap-2">
-                              <Image
-                                src={option.icon}
-                                alt={`${option.label} logo`}
-                                width={16}
-                                height={16}
-                                className="object-contain"
-                              />
-                              <span className="font-medium">
-                                {option.label}
-                              </span>
+                            <div className="flex items-start gap-2">
+                              <div className="flex-shrink-0 mt-1">
+                                <Image
+                                  src={option.icon}
+                                  alt={`${option.label} logo`}
+                                  width={16}
+                                  height={16}
+                                  className="object-contain"
+                                />
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="font-medium">
+                                  {option.label}
+                                </span>
+                                <span className="text-gray-500 text-xs">
+                                  {option.description}
+                                </span>
+                              </div>
                             </div>
-                            <span className="text-gray-500 text-xs ml-6">
-                              {option.description}
-                            </span>
                           </div>
                         </SelectItem>
                       ))}
@@ -191,10 +219,10 @@ const Chat: React.FC = () => {
                   size="icon"
                   className="h-7 w-7"
                   onClick={handleSubmit}
-                  disabled={!message.trim() && files.length === 0}
+                  disabled={!isLoading && !message.trim() && files.length === 0}
                 >
                   {isLoading ? (
-                    <Square className="size-5 fill-current" weight="fill" />
+                    <Square className="size-4 fill-current" weight="fill" />
                   ) : (
                     <ArrowRight className="size-4" weight="regular" />
                   )}
