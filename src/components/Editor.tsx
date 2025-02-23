@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Select,
   SelectContent,
@@ -32,6 +34,7 @@ import {
 } from "@phosphor-icons/react";
 import Color from "@tiptap/extension-color";
 import FontFamily from "@tiptap/extension-font-family";
+import FontSize from "@tiptap/extension-font-size";
 import Highlight from "@tiptap/extension-highlight";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -81,12 +84,25 @@ const TEXT_COLORS = [
   { label: "Green", value: "#16A34A" },
 ];
 
+// Add this constant with your other constants
+const FONT_SIZES = [
+  { label: "12px", value: "12px" },
+  { label: "14px", value: "14px" },
+  { label: "16px", value: "16px" },
+  { label: "18px", value: "18px" },
+  { label: "20px", value: "20px" },
+  { label: "24px", value: "24px" },
+  { label: "30px", value: "30px" },
+  { label: "36px", value: "36px" },
+];
+
 const Editor = () => {
   const editor = useEditor({
     extensions: [
       StarterKit,
       TextStyle,
       FontFamily,
+      FontSize,
       Underline,
       TextStyle.configure(),
       Color.configure(),
@@ -270,6 +286,41 @@ const Editor = () => {
                   </TooltipTrigger>
                   <TooltipContent className="px-2 py-1 text-xs">
                     Font family
+                  </TooltipContent>
+                </Tooltip>
+                <Separator orientation="vertical" />
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div>
+                      <Select
+                        value={
+                          editor?.getAttributes("textStyle").fontSize || "16px"
+                        }
+                        onValueChange={(value) => {
+                          editor?.chain().focus().setFontSize(value).run();
+                        }}
+                      >
+                        <SelectTrigger className="w-[90px] h-8 border-none shadow-none focus:ring-0 focus:ring-offset-0 pr-0">
+                          <div className="flex items-center gap-1">
+                            <SelectValue placeholder="16px" />
+                          </div>
+                        </SelectTrigger>
+                        <SelectContent className="p-1 rounded-xl shadow-lg">
+                          {FONT_SIZES.map((size) => (
+                            <SelectItem
+                              key={size.value}
+                              value={size.value}
+                              className="py-2"
+                            >
+                              {size.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="px-2 py-1 text-xs">
+                    Font size
                   </TooltipContent>
                 </Tooltip>
                 <Separator orientation="vertical" />
