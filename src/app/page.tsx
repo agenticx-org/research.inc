@@ -2,11 +2,14 @@
 
 import Chat from "@/components/Chat";
 import Editor from "@/components/Editor";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
+import { User } from "@phosphor-icons/react";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 export default function Home() {
@@ -30,7 +33,20 @@ export default function Home() {
         <div className="relative z-60">
           <div className="min-h-12 max-h-12 bg-background border-b border-b-default-200 fixed top-0 z-50 flex items-center w-full bg-white dark:bg-black">
             <div className="flex items-center justify-between px-3 w-full">
-              Research.inc
+              <div className="flex items-center gap-1.5 font-medium">
+                <Image
+                  src={"/research.svg"}
+                  height={25}
+                  width={25}
+                  alt="research.inc logo"
+                />
+                Research.inc
+              </div>
+              <Avatar className="w-8 h-8">
+                <AvatarFallback className="bg-white border">
+                  <User size={14} weight="bold" aria-hidden="true" />
+                </AvatarFallback>
+              </Avatar>
             </div>
           </div>
         </div>
