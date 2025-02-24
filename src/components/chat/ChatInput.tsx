@@ -7,8 +7,16 @@ import {
   PromptInputTextarea,
 } from "@/components/chat/PromptInput";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { ModelId } from "@/types/chat";
-import { ArrowRight, Paperclip, Square } from "@phosphor-icons/react";
+import {
+  ArrowRight,
+  ChatCircle,
+  Infinity,
+  Paperclip,
+  Square,
+} from "@phosphor-icons/react";
+import { useState } from "react";
 import { ModelSelector } from "./ModelSelector";
 
 interface ChatInputProps {
@@ -19,6 +27,7 @@ interface ChatInputProps {
   onModelChange: (model: ModelId) => void;
   onSubmit: () => void;
   onFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onModeChange?: (isAgent: boolean) => void;
 }
 
 export function ChatInput({
@@ -29,9 +38,53 @@ export function ChatInput({
   onModelChange,
   onSubmit,
   onFileChange,
+  onModeChange,
 }: ChatInputProps) {
+  const [isAgent, setIsAgent] = useState(true);
+
+  const handleModeChange = (checked: boolean) => {
+    setIsAgent(checked);
+    onModeChange?.(checked);
+  };
+
   return (
     <div className="w-full px-2 pt-2 pb-2">
+      <div className="border w-40 -mb-2 pb-2 rounded-t text-xs bg-zinc-50 flex items-center justify-center">
+        <div
+          role="group"
+          aria-label="Chat mode selection"
+          className="bg-white w-full mx-1 rounded-lg my-1 border min-h-6 flex overflow-hidden"
+        >
+          <button
+            onClick={() => handleModeChange(true)}
+            aria-pressed={isAgent}
+            className={cn([
+              "w-20 flex items-center justify-center gap-1 transition-colors",
+              isAgent ? "bg-black text-white" : "hover:bg-zinc-100",
+            ])}
+          >
+            <span className="flex items-center gap-1">
+              {isAgent && <Infinity className="size-3" weight="bold" />}
+              Agent
+            </span>
+            <span className="text-[8px] opacity-60">⌘I</span>
+          </button>
+          <button
+            onClick={() => handleModeChange(false)}
+            aria-pressed={!isAgent}
+            className={cn([
+              "w-20 flex items-center justify-center gap-1 transition-colors",
+              !isAgent ? "bg-black text-white" : "hover:bg-zinc-100",
+            ])}
+          >
+            <span className="flex items-center gap-1">
+              {!isAgent && <ChatCircle className="size-3" weight="bold" />}
+              Chat
+            </span>
+            <span className="text-[8px] opacity-60">⌘L</span>
+          </button>
+        </div>
+      </div>
       <PromptInput
         isLoading={isLoading}
         value={message}
