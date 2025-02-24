@@ -2,6 +2,7 @@
 
 import { ChatCircle, Infinity } from "@phosphor-icons/react";
 import Aurora from "../animation/Aurora";
+import GradientText from "../animation/GradientText";
 
 interface WelcomeMessageProps {
   isAgent: boolean;
@@ -9,8 +10,8 @@ interface WelcomeMessageProps {
 
 export function WelcomeMessage({ isAgent }: WelcomeMessageProps) {
   return (
-    <div className="relative h-full w-full">
-      <div className="h-36">
+    <div className="relative h-full w-full min-h-[300px]">
+      <div className="h-36 relative z-10">
         <Aurora
           colorStops={["#1a1a1a", "#2d3436", "#636e72"]}
           blend={0.5}
@@ -18,12 +19,17 @@ export function WelcomeMessage({ isAgent }: WelcomeMessageProps) {
           speed={0.5}
         />
       </div>
-      <div className="absolute bottom-0 left-0 right-0 p-4">
+      <div className="absolute bottom-0 left-0 right-0 p-4 z-[1]">
         <div className="flex flex-col transition-all duration-200">
           <div className="flex flex-col">
-            <div className="text-[35px] gradient-text leading-tight">
+            <GradientText
+              colors={["#1a1a1a", "#2d3436", "#636e72", "#2d3436", "#1a1a1a"]}
+              animationSpeed={3}
+              showBorder={false}
+              className="text-[35px] mx-0"
+            >
               Hello Nick
-            </div>
+            </GradientText>
             <div className="text-[28px] text-default-900 leading-tight">
               What are we working on today?
             </div>
