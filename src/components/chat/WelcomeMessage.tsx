@@ -6,7 +6,7 @@ import Aurora from "../animation/Aurora";
 export function WelcomeMessage() {
   return (
     <div className="relative h-full w-full">
-      <div className="h-42">
+      <div className="h-36">
         <Aurora
           colorStops={["#1a1a1a", "#2d3436", "#636e72"]}
           blend={0.5}

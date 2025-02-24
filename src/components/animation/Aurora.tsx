@@ -141,23 +141,8 @@ export default function Aurora(props: AuroraProps) {
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     gl.canvas.style.backgroundColor = "transparent";
 
-    // eslint-disable-next-line prefer-const
-    let program: Program | undefined;
-
-    function resize() {
-      if (!ctn) return;
-      const width = ctn.offsetWidth;
-      const height = ctn.offsetHeight;
-      renderer.setSize(width, height);
-      if (program) {
-        program.uniforms.uResolution.value = [width, height];
-      }
-    }
-    window.addEventListener("resize", resize);
-
     const geometry = new Triangle(gl);
     if (geometry.attributes.uv) {
-      // TypeScript may require a type assertion here.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (geometry.attributes as any).uv;
     }
@@ -167,7 +152,7 @@ export default function Aurora(props: AuroraProps) {
       return [c.r, c.g, c.b];
     });
 
-    program = new Program(gl, {
+    const program = new Program(gl, {
       vertex: VERT,
       fragment: FRAG,
       uniforms: {
@@ -181,10 +166,23 @@ export default function Aurora(props: AuroraProps) {
 
     const mesh = new Mesh(gl, { geometry, program });
     ctn.appendChild(gl.canvas);
+    gl.canvas.style.width = "100%";
+    gl.canvas.style.height = "100%";
 
     let animateId = 0;
     const update = (t: number) => {
       animateId = requestAnimationFrame(update);
+      const currentWidth = ctn.offsetWidth;
+      const currentHeight = ctn.offsetHeight;
+      if (
+        gl.canvas.width !== currentWidth ||
+        gl.canvas.height !== currentHeight
+      ) {
+        renderer.setSize(currentWidth, currentHeight);
+        if (program) {
+          program.uniforms.uResolution.value = [currentWidth, currentHeight];
+        }
+      }
       const { time = t * 0.01, speed = 1.0 } = propsRef.current;
       if (program) {
         program.uniforms.uTime.value = time * speed * 0.1;
@@ -198,13 +196,11 @@ export default function Aurora(props: AuroraProps) {
         renderer.render({ scene: mesh });
       }
     };
-    animateId = requestAnimationFrame(update);
 
-    resize();
+    animateId = requestAnimationFrame(update);
 
     return () => {
       cancelAnimationFrame(animateId);
-      window.removeEventListener("resize", resize);
       if (ctn && gl.canvas.parentNode === ctn) {
         ctn.removeChild(gl.canvas);
       }
