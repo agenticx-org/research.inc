@@ -1,6 +1,6 @@
 "use client";
 
-import { ChatCircle, Infinity } from "@phosphor-icons/react";
+import { ArrowUpRight, ChatCircle, Infinity } from "@phosphor-icons/react";
 import Aurora from "../animation/Aurora";
 import GradientText from "../animation/GradientText";
 
@@ -10,7 +10,7 @@ interface WelcomeMessageProps {
 
 export function WelcomeMessage({ isAgent }: WelcomeMessageProps) {
   return (
-    <div className="relative h-full w-full min-h-[300px]">
+    <div className="relative h-full w-full min-h-[500px]">
       <div className="h-36 relative z-10">
         <Aurora
           colorStops={["#1a1a1a", "#2d3436", "#636e72"]}
@@ -55,6 +55,32 @@ export function WelcomeMessage({ isAgent }: WelcomeMessageProps) {
                   : "Chat with me about anything you'd like to know."}
               </div>
             </div>
+          </div>
+          <div className="mt-4 flex flex-col gap-3">
+            {[
+              {
+                text: "Analyze potential PE investment opportunities in the automotive supplier market, focusing on EV component manufacturers.",
+                icon: <ArrowUpRight className="size-3.5" weight="regular" />,
+              },
+              {
+                text: "Evaluate the PE exit opportunities and multiples for software companies in the automotive diagnostic tools sector.",
+                icon: <ArrowUpRight className="size-3.5" weight="regular" />,
+              },
+              {
+                text: "Research buy-and-build strategies in the automotive aftermarket sector, identifying potential add-on acquisitions.",
+                icon: <ArrowUpRight className="size-3.5" weight="regular" />,
+              },
+            ].map((item, index) => (
+              <button
+                key={index}
+                className="flex items-center gap-2 p-3 py-1.5 text-left bg-zinc-50 hover:bg-zinc-100 rounded-lg transition-colors duration-200"
+              >
+                <div className="flex items-center">{item.icon}</div>
+                <span className="text-[11px] text-default-700">
+                  {item.text}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
       </div>
