@@ -101,6 +101,7 @@ const FONT_SIZES = [
 
 const Editor = () => {
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
       StarterKit,
       TextStyle,
