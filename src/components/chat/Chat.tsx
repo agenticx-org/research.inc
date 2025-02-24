@@ -11,6 +11,7 @@ export function Chat() {
   const [files, setFiles] = useState<File[]>([]);
   const [selectedModel, setSelectedModel] = useState<ModelId>("gemini-flash2");
   const [messages, setMessages] = useState<Message[]>([]);
+  const [isAgent, setIsAgent] = useState(true);
 
   const handleSubmit = () => {
     if (message.trim() || files.length > 0) {
@@ -38,15 +39,19 @@ export function Chat() {
     }
   };
 
+  const handleModeChange = (isAgent: boolean) => {
+    setIsAgent(isAgent);
+  };
+
   return (
     <>
       <div className="flex-grow flex-shrink-0 h-[51px] w-full bg-white z-[2]"></div>
       <div className="flex flex-col h-[calc(100vh-51px)]">
         <div className="border-b border-b-default-200 flex items-center justify-between bg-white gap-x-3 px-3 h-[46px] font-medium">
-          Agent
+          {isAgent ? "Agent" : "Chat"}
         </div>
         <div className="flex-1 relative overflow-y-auto scrollbar-custom overflow-x-hidden">
-          <MessageList messages={messages} />
+          <MessageList messages={messages} isAgent={isAgent} />
         </div>
         <ChatInput
           message={message}
@@ -56,6 +61,7 @@ export function Chat() {
           onModelChange={setSelectedModel}
           onSubmit={handleSubmit}
           onFileChange={handleFileChange}
+          onModeChange={handleModeChange}
         />
       </div>
     </>

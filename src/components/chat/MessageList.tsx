@@ -6,11 +6,12 @@ import { WelcomeMessage } from "./WelcomeMessage";
 
 interface MessageListProps {
   messages: Message[];
+  isAgent: boolean;
 }
 
-export function MessageList({ messages }: MessageListProps) {
+export function MessageList({ messages, isAgent }: MessageListProps) {
   if (messages.length === 0) {
-    return <WelcomeMessage />;
+    return <WelcomeMessage isAgent={isAgent} />;
   }
 
   return (

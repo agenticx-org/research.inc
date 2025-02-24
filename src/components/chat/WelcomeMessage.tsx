@@ -1,9 +1,13 @@
 "use client";
 
-import { Infinity } from "@phosphor-icons/react";
+import { ChatCircle, Infinity } from "@phosphor-icons/react";
 import Aurora from "../animation/Aurora";
 
-export function WelcomeMessage() {
+interface WelcomeMessageProps {
+  isAgent: boolean;
+}
+
+export function WelcomeMessage({ isAgent }: WelcomeMessageProps) {
   return (
     <div className="relative h-full w-full">
       <div className="h-36">
@@ -29,14 +33,20 @@ export function WelcomeMessage() {
             <div className="inline-flex items-center gap-1 text-default-900">
               You are in
               <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-default-100 rounded-md bg-zinc-50 border text-sm">
-                <Infinity className="size-4" weight="regular" />
-                <span>Agent Mode</span>
+                {isAgent ? (
+                  <Infinity className="size-4" weight="regular" />
+                ) : (
+                  <ChatCircle className="size-4" weight="regular" />
+                )}
+                <span>{isAgent ? "Agent Mode" : "Chat Mode"}</span>
               </div>
             </div>
             <div className="my-1.5"></div>
             <div className="text-sm text-default-900">
               <div className="flex flex-col gap-1 text-muted-foreground">
-                Agent can directly edit and work on your canvas.
+                {isAgent
+                  ? "Agent can directly edit and work on your canvas."
+                  : "Chat with me about anything you'd like to know."}
               </div>
             </div>
           </div>
