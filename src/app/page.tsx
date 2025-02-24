@@ -63,7 +63,11 @@ export default function Home() {
             {isRightPanelVisible && (
               <>
                 <ResizableHandle />
-                <ResizablePanel defaultSize={30} minSize={30}>
+                <ResizablePanel
+                  defaultSize={30}
+                  minSize={30}
+                  className="hidden md:block"
+                >
                   <Chat />
                 </ResizablePanel>
               </>
