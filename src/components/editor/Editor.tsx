@@ -22,7 +22,7 @@ import { SelectionHighlight } from "./extensions/SelectionHighlight";
 import { EditorBubbleMenu } from "./tools";
 
 const Editor = () => {
-  const { selectedTextItems } = useChatStore();
+  const { selectedTextItems, removeSelectedText } = useChatStore();
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -168,6 +168,34 @@ const Editor = () => {
       }
     });
   }, [editor, selectedTextItems]);
+
+  // Add event listener for removeHighlight custom event
+  useEffect(() => {
+    if (!editor) return;
+
+    const handleRemoveHighlight = (event: CustomEvent) => {
+      const { highlightId } = event.detail;
+      if (highlightId) {
+        // Remove the item from the store
+        removeSelectedText(highlightId);
+      }
+    };
+
+    // Add event listener to the editor DOM element
+    const editorElement = editor.view.dom;
+    editorElement.addEventListener(
+      "removeHighlight",
+      handleRemoveHighlight as EventListener
+    );
+
+    // Clean up the event listener when the component unmounts
+    return () => {
+      editorElement.removeEventListener(
+        "removeHighlight",
+        handleRemoveHighlight as EventListener
+      );
+    };
+  }, [editor, removeSelectedText]);
 
   // Get word and character count
   const wordCount = editor?.storage.characterCount?.words() || 0;
