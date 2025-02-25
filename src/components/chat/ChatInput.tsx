@@ -8,6 +8,7 @@ import {
 } from "@/components/chat/PromptInput";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useChatStore } from "@/store/chat-store";
 import { ModelId } from "@/types/chat";
 import {
   ArrowRight,
@@ -15,6 +16,7 @@ import {
   Infinity,
   Paperclip,
   Square,
+  X,
 } from "@phosphor-icons/react";
 import { useState } from "react";
 import { ModelSelector } from "./ModelSelector";
@@ -41,10 +43,16 @@ export function ChatInput({
   onModeChange,
 }: ChatInputProps) {
   const [isAgent, setIsAgent] = useState(true);
+  const { selectedText, clearSelectedText } = useChatStore();
 
   const handleModeChange = (checked: boolean) => {
     setIsAgent(checked);
     onModeChange?.(checked);
+  };
+
+  const handleSubmit = () => {
+    onSubmit();
+    clearSelectedText();
   };
 
   return (
@@ -85,12 +93,29 @@ export function ChatInput({
           </button>
         </div>
       </div>
+
+      {selectedText && (
+        <div className="border rounded-t border-b-0 p-2 bg-zinc-50 flex items-center justify-between">
+          <div className="text-sm font-medium truncate flex-1">
+            {selectedText}
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6"
+            onClick={clearSelectedText}
+          >
+            <X className="size-3" />
+          </Button>
+        </div>
+      )}
+
       <PromptInput
         isLoading={isLoading}
         value={message}
         onValueChange={onMessageChange}
-        onSubmit={onSubmit}
-        className="bg-white"
+        onSubmit={handleSubmit}
+        className={cn("bg-white", selectedText && "rounded-t-none")}
       >
         <PromptInputTextarea
           placeholder="Ask me to do anything..."
@@ -125,8 +150,8 @@ export function ChatInput({
             <Button
               size="icon"
               className="h-7 w-7"
-              onClick={onSubmit}
-              disabled={!message.trim()}
+              onClick={handleSubmit}
+              disabled={!message.trim() && !selectedText.trim()}
             >
               {isLoading ? (
                 <Square className="size-4 fill-current" weight="fill" />

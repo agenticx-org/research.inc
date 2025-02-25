@@ -20,7 +20,13 @@ export function Chat() {
     handleFileChange,
     setIsAgent,
     clearMessages,
+    clearSelectedText,
   } = useChatStore();
+
+  const handleClearChat = () => {
+    clearMessages();
+    clearSelectedText();
+  };
 
   return (
     <>
@@ -31,7 +37,7 @@ export function Chat() {
           <div>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" onClick={clearMessages}>
+                <Button variant="ghost" size="icon" onClick={handleClearChat}>
                   <Plus className="h-5 w-5" />
                 </Button>
               </TooltipTrigger>

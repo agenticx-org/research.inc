@@ -11,6 +11,7 @@ interface ChatState {
   selectedModel: ModelId;
   messages: Message[];
   isAgent: boolean;
+  selectedText: string;
 
   // Actions
   setMessage: (message: string) => void;
@@ -24,7 +25,9 @@ interface ChatState {
   addAgentResponse: (content: MessageContent[]) => void;
   clearMessages: () => void;
   setIsAgent: (isAgent: boolean) => void;
-  setMessageAndTogglePanel: (message: string) => void;
+  setMessageAndTogglePanel: (message: string, isSelectedText?: boolean) => void;
+  setSelectedText: (text: string) => void;
+  clearSelectedText: () => void;
 
   // Handlers
   handleSubmit: () => void;
@@ -41,6 +44,7 @@ export const useChatStore = create<ChatState>()(
       selectedModel: "claude3.7" as ModelId,
       messages: [],
       isAgent: true,
+      selectedText: "",
 
       // Actions
       setMessage: (message: string) => set({ message }),
@@ -72,8 +76,14 @@ export const useChatStore = create<ChatState>()(
         }),
       clearMessages: () => set({ messages: [] }),
       setIsAgent: (isAgent: boolean) => set({ isAgent }),
-      setMessageAndTogglePanel: (message: string) => {
-        set({ message });
+      setSelectedText: (text: string) => set({ selectedText: text }),
+      clearSelectedText: () => set({ selectedText: "" }),
+      setMessageAndTogglePanel: (message: string, isSelectedText = false) => {
+        if (isSelectedText) {
+          set({ selectedText: message });
+        } else {
+          set({ message });
+        }
         // This is a custom event to toggle the panel visibility
         const event = new CustomEvent("toggleChatPanel", {
           detail: {
@@ -86,17 +96,19 @@ export const useChatStore = create<ChatState>()(
 
       // Handlers
       handleSubmit: () => {
-        const { message, files } = get();
+        const { message, files, selectedText } = get();
+        const textToSend = selectedText || message;
 
-        if (message.trim() || files.length > 0) {
+        if (textToSend.trim() || files.length > 0) {
           // Add user message
           set((state) => {
             state.messages.push({
               role: "user",
-              content: [{ type: "text", text: message }],
+              content: [{ type: "text", text: textToSend }],
             });
             state.isLoading = true;
             state.message = "";
+            state.selectedText = "";
             state.files = [];
           });
 
