@@ -15,14 +15,16 @@ import {
   TextUnderline,
 } from "@phosphor-icons/react";
 import { BubbleMenu, Editor } from "@tiptap/react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 interface EditorBubbleMenuProps {
   editor: Editor;
 }
 
 export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
-  const { setMessageAndTogglePanel, addSelectedText } = useChatStore();
+  const { setMessageAndTogglePanel, addSelectedText, selectedTextItems } =
+    useChatStore();
+  const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
 
   // Add keyboard shortcut for Command+L to add selected text to chat
   useEffect(() => {
@@ -35,8 +37,19 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
         const selectedText = editor.state.doc.textBetween(from, to, " ");
 
         if (selectedText && selectedText.trim()) {
-          // If text is selected, add it to chat and open panel
-          setMessageAndTogglePanel(selectedText, true);
+          // Check if this is a duplicate
+          const isDuplicate = selectedTextItems.some(
+            (item) => item.text === selectedText.trim()
+          );
+
+          if (isDuplicate) {
+            // Show duplicate warning
+            setShowDuplicateWarning(true);
+            setTimeout(() => setShowDuplicateWarning(false), 2000);
+          } else {
+            // If text is selected, add it to chat and open panel
+            setMessageAndTogglePanel(selectedText, true);
+          }
         } else {
           // If no text is selected, just toggle the panel with empty message
           const event = new CustomEvent("toggleChatPanel", {
@@ -55,7 +68,7 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [editor, setMessageAndTogglePanel]);
+  }, [editor, setMessageAndTogglePanel, selectedTextItems]);
 
   if (!editor) return null;
 
@@ -82,14 +95,25 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
     const { from, to } = editor.state.selection;
     const selectedText = editor.state.doc.textBetween(from, to, " ");
     if (selectedText && selectedText.trim()) {
-      // Use addSelectedText directly to add a new selection
-      addSelectedText(selectedText);
+      // Check if this is a duplicate
+      const isDuplicate = selectedTextItems.some(
+        (item) => item.text === selectedText.trim()
+      );
 
-      // Also toggle the panel to show it's been added
-      const event = new CustomEvent("toggleChatPanel", {
-        detail: { shouldOpen: true, forceToggle: false },
-      });
-      window.dispatchEvent(event);
+      if (isDuplicate) {
+        // Show duplicate warning
+        setShowDuplicateWarning(true);
+        setTimeout(() => setShowDuplicateWarning(false), 2000);
+      } else {
+        // Use addSelectedText directly to add a new selection
+        addSelectedText(selectedText);
+
+        // Also toggle the panel to show it's been added
+        const event = new CustomEvent("toggleChatPanel", {
+          detail: { shouldOpen: true, forceToggle: false },
+        });
+        window.dispatchEvent(event);
+      }
     } else {
       // If no text is selected, just toggle the panel
       const event = new CustomEvent("toggleChatPanel", {
@@ -125,15 +149,24 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
       <TooltipProvider delayDuration={0}>
         <div className="flex items-center gap-1 p-1">
           {/* Add to Chat button */}
-          <button
-            onClick={handleAddToChat}
-            className="px-2 py-1 rounded text-xs font-medium transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-          >
-            Add to Chat
-            <span className="ml-1 text-[10px] text-gray-500 font-normal">
-              ⌘L
-            </span>
-          </button>
+          <div className="relative">
+            <button
+              onClick={handleAddToChat}
+              className="px-2 py-1 rounded text-xs font-medium transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+            >
+              Add to Chat
+              <span className="ml-1 text-[10px] text-gray-500 font-normal">
+                ⌘L
+              </span>
+            </button>
+
+            {/* Duplicate warning tooltip */}
+            {showDuplicateWarning && (
+              <div className="absolute top-full left-0 mt-1 px-2 py-1 bg-amber-100 text-amber-800 text-xs rounded border border-amber-200 whitespace-nowrap z-50">
+                This text is already selected
+              </div>
+            )}
+          </div>
 
           {/* Edit button - new */}
           <button

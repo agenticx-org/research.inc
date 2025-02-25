@@ -17,7 +17,9 @@ const SELECTION_COLORS = [
   "bg-purple-50 border-purple-200",
   "bg-amber-50 border-amber-200",
   "bg-rose-50 border-rose-200",
-  "bg-cyan-50 border-cyan-200",
+  "bg-teal-50 border-teal-200",
+  "bg-indigo-50 border-indigo-200",
+  "bg-orange-50 border-orange-200",
 ];
 
 interface ChatState {
@@ -98,14 +100,23 @@ export const useChatStore = create<ChatState>()(
       // Add a new selected text item with a unique color
       addSelectedText: (text: string) =>
         set((state) => {
-          if (text.trim()) {
-            const colorIndex =
-              state.selectedTextItems.length % SELECTION_COLORS.length;
-            state.selectedTextItems.push({
-              id: Date.now().toString(),
-              text,
-              color: SELECTION_COLORS[colorIndex],
-            });
+          const trimmedText = text.trim();
+          if (trimmedText) {
+            // Check if this exact text already exists in the selections
+            const isDuplicate = state.selectedTextItems.some(
+              (item) => item.text === trimmedText
+            );
+
+            // Only add if it's not a duplicate
+            if (!isDuplicate) {
+              const colorIndex =
+                state.selectedTextItems.length % SELECTION_COLORS.length;
+              state.selectedTextItems.push({
+                id: Date.now().toString(),
+                text: trimmedText,
+                color: SELECTION_COLORS[colorIndex],
+              });
+            }
           }
         }),
 
