@@ -119,8 +119,7 @@ export function ChatInput({
               <div
                 key={item.id}
                 className={cn(
-                  "relative px-2 py-1 rounded border text-xs flex items-center group",
-                  item.color
+                  "relative px-2 py-1 rounded border text-xs flex items-center group"
                 )}
               >
                 <div
