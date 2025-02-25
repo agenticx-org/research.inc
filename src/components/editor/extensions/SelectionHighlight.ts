@@ -121,42 +121,84 @@ export const SelectionHighlight = Extension.create<SelectionHighlightOptions>({
     return [
       new Plugin({
         key: SelectionHighlightKey,
+        state: {
+          init() {
+            return { decorationSet: DecorationSet.empty };
+          },
+          apply(tr, prev) {
+            // If the document changed, we need to map our highlights to the new positions
+            if (tr.docChanged) {
+              const { highlights } = storage;
+
+              // Map each highlight to its new position
+              storage.highlights = highlights.map(
+                (highlight: HighlightItem) => {
+                  const newFrom = tr.mapping.map(highlight.from);
+                  const newTo = tr.mapping.map(highlight.to);
+
+                  return {
+                    ...highlight,
+                    from: newFrom,
+                    to: newTo,
+                  };
+                }
+              );
+            }
+
+            return prev;
+          },
+        },
         props: {
           decorations: (state) => {
             const { highlights } = storage;
             const decorations: Decoration[] = [];
+            const docSize = state.doc.content.size;
 
             highlights.forEach((highlight: HighlightItem) => {
+              // Validate highlight positions are within document bounds
+              if (
+                highlight.from < 0 ||
+                highlight.to > docSize ||
+                highlight.from >= highlight.to
+              ) {
+                return; // Skip invalid highlights
+              }
+
               const colorClass = highlight.color.split(" ")[0]; // Get the background color class
 
               // Create decorations that respect node boundaries
-              // This is the key improvement - we'll create separate decorations for each node
               const nodeDecorations: Decoration[] = [];
 
-              // Find all nodes between the highlight range
-              state.doc.nodesBetween(
-                highlight.from,
-                highlight.to,
-                (node, pos) => {
-                  // Skip non-text nodes
-                  if (!node.isText) return true;
+              try {
+                // Find all nodes between the highlight range
+                state.doc.nodesBetween(
+                  highlight.from,
+                  highlight.to,
+                  (node, pos) => {
+                    // Skip non-text nodes or undefined nodes
+                    if (!node || !node.isText) return true;
 
-                  // Calculate the overlap between this text node and our highlight
-                  const from = Math.max(highlight.from, pos);
-                  const to = Math.min(highlight.to, pos + node.nodeSize);
+                    // Calculate the overlap between this text node and our highlight
+                    const from = Math.max(highlight.from, pos);
+                    const to = Math.min(highlight.to, pos + node.nodeSize);
 
-                  // Only create a decoration if there's an actual overlap
-                  if (from < to) {
-                    nodeDecorations.push(
-                      Decoration.inline(from, to, {
-                        class: `${colorClass} selection-highlight`,
-                      })
-                    );
+                    // Only create a decoration if there's an actual overlap
+                    if (from < to) {
+                      nodeDecorations.push(
+                        Decoration.inline(from, to, {
+                          class: `${colorClass} selection-highlight`,
+                        })
+                      );
+                    }
+
+                    return true;
                   }
-
-                  return true;
-                }
-              );
+                );
+              } catch (error) {
+                console.warn("Error creating highlight decoration:", error);
+                // If there's an error, we'll skip this highlight
+                return;
+              }
 
               // Add all node-specific decorations
               decorations.push(...nodeDecorations);
