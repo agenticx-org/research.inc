@@ -1,4 +1,5 @@
 export { ColorSelectors } from "./ColorSelectors";
+export { EditorBubbleMenu } from "./EditorBubbleMenu";
 export { FontSelector } from "./FontSelector";
 export { FontSizeSelector } from "./FontSizeSelector";
 export { TextAlignButtons } from "./TextAlignButtons";

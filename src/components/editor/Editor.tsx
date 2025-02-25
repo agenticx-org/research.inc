@@ -15,6 +15,7 @@ import { useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { EditorContent } from "./EditorContent";
 import { EditorToolbar } from "./EditorToolbar";
+import { EditorBubbleMenu } from "./tools";
 
 const Editor = () => {
   const editor = useEditor({
@@ -69,6 +70,7 @@ const Editor = () => {
   return (
     <>
       <EditorToolbar editor={editor} />
+      {editor && <EditorBubbleMenu editor={editor} />}
       <EditorContent editor={editor} />
     </>
   );
