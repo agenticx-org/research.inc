@@ -1,5 +1,6 @@
 "use client";
 
+import { useChatStore } from "@/store/chat-store";
 import { ArrowUpRight, ChatCircle, Infinity } from "@phosphor-icons/react";
 import Aurora from "../animation/Aurora";
 import GradientText from "../animation/GradientText";
@@ -9,6 +10,13 @@ interface WelcomeMessageProps {
 }
 
 export function WelcomeMessage({ isAgent }: WelcomeMessageProps) {
+  const { setMessage, handleSubmit } = useChatStore();
+
+  const handleExampleClick = (text: string) => {
+    setMessage(text);
+    handleSubmit();
+  };
+
   return (
     <div className="relative h-full w-full min-h-[500px]">
       <div className="h-36 relative z-10">
@@ -74,6 +82,7 @@ export function WelcomeMessage({ isAgent }: WelcomeMessageProps) {
               <button
                 key={index}
                 className="flex items-center gap-2 p-3 py-1.5 text-left bg-zinc-50 hover:bg-zinc-100 rounded-lg transition-colors duration-200"
+                onClick={() => handleExampleClick(item.text)}
               >
                 <div className="flex items-center">{item.icon}</div>
                 <span className="text-[11px] text-default-700">

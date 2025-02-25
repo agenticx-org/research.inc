@@ -1,8 +1,9 @@
 "use client";
 
-import { Message } from "@/types/chat";
+import { ElementContent, Message, TextContent } from "@/types/chat";
 import { User } from "@phosphor-icons/react";
 import Image from "next/image";
+import { UIElement } from "./ui-elements";
 
 interface MessageItemProps {
   message: Message;
@@ -21,8 +22,25 @@ export function MessageItem({ message }: MessageItemProps) {
         </div>
       )}
       <div className="flex-1">
-        <div className="text-gray-900 text-sm pt-1">{message.text}</div>
+        <div className="space-y-3">
+          {message.content.map((content, idx) => (
+            <MessageContent key={idx} content={content} />
+          ))}
+        </div>
       </div>
     </div>
   );
+}
+
+interface MessageContentProps {
+  content: TextContent | ElementContent;
+}
+
+function MessageContent({ content }: MessageContentProps) {
+  if (content.type === "text") {
+    return <div className="text-gray-900 text-sm mt-1">{content.text}</div>;
+  } else if (content.type === "element") {
+    return <UIElement element={content.element} />;
+  }
+  return null;
 }

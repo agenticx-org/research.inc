@@ -1,6 +1,45 @@
 export interface Message {
   role: "user" | "ai";
+  content: MessageContent[];
+}
+
+export type MessageContent = TextContent | ElementContent;
+
+export interface TextContent {
+  type: "text";
   text: string;
+}
+
+export interface ElementContent {
+  type: "element";
+  element: AgentUIElement;
+}
+
+export interface AgentUIElement {
+  type: "web_search" | "code_block" | "file_tree" | "image";
+  content: WebSearchElement | CodeBlockElement | FileTreeElement | ImageElement;
+}
+
+export interface WebSearchElement {
+  title: string;
+  url: string;
+  snippet: string;
+}
+
+export interface CodeBlockElement {
+  language: string;
+  code: string;
+}
+
+export interface FileTreeElement {
+  files: string[];
+}
+
+export interface ImageElement {
+  src: string;
+  alt: string;
+  width?: number;
+  height?: number;
 }
 
 export interface ModelOption {

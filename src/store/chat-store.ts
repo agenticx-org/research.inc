@@ -1,4 +1,4 @@
-import { Message, ModelId } from "@/types/chat";
+import { Message, MessageContent, ModelId } from "@/types/chat";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
@@ -20,6 +20,8 @@ interface ChatState {
   clearFiles: () => void;
   setSelectedModel: (model: ModelId) => void;
   addMessage: (message: Message) => void;
+  addUserMessage: (text: string) => void;
+  addAgentResponse: (content: MessageContent[]) => void;
   clearMessages: () => void;
   setIsAgent: (isAgent: boolean) => void;
 
@@ -53,6 +55,20 @@ export const useChatStore = create<ChatState>()(
         set((state) => {
           state.messages.push(message);
         }),
+      addUserMessage: (text: string) =>
+        set((state) => {
+          state.messages.push({
+            role: "user",
+            content: [{ type: "text", text }],
+          });
+        }),
+      addAgentResponse: (content: MessageContent[]) =>
+        set((state) => {
+          state.messages.push({
+            role: "ai",
+            content,
+          });
+        }),
       clearMessages: () => set({ messages: [] }),
       setIsAgent: (isAgent: boolean) => set({ isAgent }),
 
@@ -61,10 +77,12 @@ export const useChatStore = create<ChatState>()(
         const { message, files } = get();
 
         if (message.trim() || files.length > 0) {
-          const userMessage: Message = { role: "user", text: message };
-
+          // Add user message
           set((state) => {
-            state.messages.push(userMessage);
+            state.messages.push({
+              role: "user",
+              content: [{ type: "text", text: message }],
+            });
             state.isLoading = true;
             state.message = "";
             state.files = [];
@@ -72,13 +90,46 @@ export const useChatStore = create<ChatState>()(
 
           // Mock AI response - replace with actual API call
           setTimeout(() => {
-            set((state) => {
-              state.messages.push({
-                role: "ai",
-                text: "This is a mock AI response.",
+            // Example of an agent response with mixed content
+            if (get().isAgent) {
+              set((state) => {
+                state.messages.push({
+                  role: "ai",
+                  content: [
+                    {
+                      type: "text",
+                      text: "I found some information for you:",
+                    },
+                    {
+                      type: "element",
+                      element: {
+                        type: "web_search",
+                        content: {
+                          title: "Example Search Result",
+                          url: "https://example.com",
+                          snippet:
+                            "This is an example search result that demonstrates the UI element for web search results.",
+                        },
+                      },
+                    },
+                  ],
+                });
+                state.isLoading = false;
               });
-              state.isLoading = false;
-            });
+            } else {
+              set((state) => {
+                state.messages.push({
+                  role: "ai",
+                  content: [
+                    {
+                      type: "text",
+                      text: "This is a standard AI response without UI elements.",
+                    },
+                  ],
+                });
+                state.isLoading = false;
+              });
+            }
           }, 2000);
         }
       },
@@ -98,7 +149,7 @@ export const useChatStore = create<ChatState>()(
         // Only persist specific parts of the state
         // Files can't be serialized, so we exclude them
         selectedModel: state.selectedModel,
-        messages: state.messages,
+        // messages: state.messages,
         isAgent: state.isAgent,
       }),
     }
