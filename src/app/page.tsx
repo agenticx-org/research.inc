@@ -1,7 +1,7 @@
 "use client";
 
 import Chat from "@/components/chat/Chat";
-import Editor from "@/components/Editor";
+import Editor from "@/components/editor/Editor";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   ResizableHandle,
