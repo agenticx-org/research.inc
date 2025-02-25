@@ -8,18 +8,18 @@ export const MODEL_OPTIONS: ModelOption[] = [
     icon: "/google-logo.webp",
     description: "fastest, most detailed",
   },
-  {
-    label: "Gemini Pro 1.5",
-    value: "gemini-pro",
-    icon: "/google-logo.webp",
-    description: "medium speed, paragraph/report like output",
-  },
   // Anthropic models
   {
-    label: "Claude 3.5 Sonnet",
-    value: "claude3.5",
+    label: "Claude 3.7 Sonnet",
+    value: "claude3.7",
     icon: "/anthropic-logo.svg",
-    description: "medium speed, detailed write up like output",
+    description: "fast, highly intelligent, versatile output",
+  },
+  {
+    label: "Claude 3.7 Sonnet Reasoning",
+    value: "claude3.7-reasoning",
+    icon: "/anthropic-logo.svg",
+    description: "enhanced reasoning, step-by-step problem solving",
   },
   // OpenAI models
   {
