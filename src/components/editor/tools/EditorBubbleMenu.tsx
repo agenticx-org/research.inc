@@ -5,6 +5,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { useChatStore } from "@/store/chat-store";
 import {
   Code as CodeIcon,
   Link as LinkIcon,
@@ -14,12 +15,42 @@ import {
   TextUnderline,
 } from "@phosphor-icons/react";
 import { BubbleMenu, Editor } from "@tiptap/react";
+import { useEffect } from "react";
 
 interface EditorBubbleMenuProps {
   editor: Editor;
 }
 
 export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
+  const { setMessageAndTogglePanel } = useChatStore();
+
+  // Add keyboard shortcut for Command+L to add selected text to chat
+  useEffect(() => {
+    if (!editor) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "l" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        const { from, to } = editor.state.selection;
+        const selectedText = editor.state.doc.textBetween(from, to, " ");
+
+        if (selectedText && selectedText.trim()) {
+          // If text is selected, add it to chat and open panel
+          setMessageAndTogglePanel(selectedText);
+        } else {
+          // If no text is selected, just toggle the panel with empty message
+          const event = new CustomEvent("toggleChatPanel", {
+            detail: { shouldOpen: false, forceToggle: true },
+          });
+          window.dispatchEvent(event);
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [editor, setMessageAndTogglePanel]);
+
   if (!editor) return null;
 
   const setLink = () => {
@@ -41,6 +72,20 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
     editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
   };
 
+  const handleAddToChat = () => {
+    const { from, to } = editor.state.selection;
+    const selectedText = editor.state.doc.textBetween(from, to, " ");
+    if (selectedText && selectedText.trim()) {
+      setMessageAndTogglePanel(selectedText);
+    } else {
+      // If no text is selected, just toggle the panel
+      const event = new CustomEvent("toggleChatPanel", {
+        detail: { shouldOpen: false, forceToggle: true },
+      });
+      window.dispatchEvent(event);
+    }
+  };
+
   return (
     <BubbleMenu
       editor={editor}
@@ -52,6 +97,22 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
     >
       <TooltipProvider delayDuration={0}>
         <div className="flex items-center gap-1 p-1">
+          {/* Add to Chat button - moved to the beginning */}
+          <>
+            <button
+              onClick={handleAddToChat}
+              className="px-2 py-1 rounded text-xs font-medium transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+            >
+              Add to Chat
+              <span className="ml-1 text-[10px] text-gray-500 font-normal">
+                ⌘L
+              </span>
+            </button>
+            {/* Separator */}
+            <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-1" />
+          </>
+
+          {/* Formatting options */}
           <Tooltip>
             <TooltipTrigger asChild>
               <button
@@ -66,7 +127,7 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
                 <TextBolder size={16} />
               </button>
             </TooltipTrigger>
-            <TooltipContent className="px-2 py-1 text-xs">
+            <TooltipContent className="px-2 py-1 text-xs mb-1">
               Bold (⌘B)
             </TooltipContent>
           </Tooltip>
@@ -84,7 +145,7 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
                 <TextItalic size={16} />
               </button>
             </TooltipTrigger>
-            <TooltipContent className="px-2 py-1 text-xs">
+            <TooltipContent className="px-2 py-1 text-xs mb-1">
               Italic (⌘I)
             </TooltipContent>
           </Tooltip>
@@ -102,7 +163,7 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
                 <TextUnderline size={16} />
               </button>
             </TooltipTrigger>
-            <TooltipContent className="px-2 py-1 text-xs">
+            <TooltipContent className="px-2 py-1 text-xs mb-1">
               Underline (⌘U)
             </TooltipContent>
           </Tooltip>
@@ -120,7 +181,7 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
                 <TextStrikethrough size={16} />
               </button>
             </TooltipTrigger>
-            <TooltipContent className="px-2 py-1 text-xs">
+            <TooltipContent className="px-2 py-1 text-xs mb-1">
               Strike (⌘S)
             </TooltipContent>
           </Tooltip>
@@ -138,7 +199,7 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
                 <CodeIcon size={16} />
               </button>
             </TooltipTrigger>
-            <TooltipContent className="px-2 py-1 text-xs">
+            <TooltipContent className="px-2 py-1 text-xs mb-1">
               Code (⌘E)
             </TooltipContent>
           </Tooltip>
@@ -156,7 +217,7 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
                 <LinkIcon size={16} />
               </button>
             </TooltipTrigger>
-            <TooltipContent className="px-2 py-1 text-xs">
+            <TooltipContent className="px-2 py-1 text-xs mb-1">
               Link (⌘L)
             </TooltipContent>
           </Tooltip>
