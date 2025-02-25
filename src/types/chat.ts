@@ -12,8 +12,8 @@ export interface ModelOption {
 
 export type ModelId =
   | "gemini-flash2"
-  | "gemini-pro"
-  | "claude3.5"
+  | "claude3.7"
+  | "claude3.7-reasoning"
   | "gpt4"
   | "o3mini"
   | "deepseek";

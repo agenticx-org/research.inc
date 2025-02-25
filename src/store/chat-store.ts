@@ -35,7 +35,7 @@ export const useChatStore = create<ChatState>()(
       message: "",
       isLoading: false,
       files: [],
-      selectedModel: "gemini-flash2" as ModelId,
+      selectedModel: "claude3.7" as ModelId,
       messages: [],
       isAgent: true,
 
