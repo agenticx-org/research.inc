@@ -12,10 +12,10 @@ import {
 } from "@/components/ui/tooltip";
 import { TextT } from "@phosphor-icons/react";
 import { Editor } from "@tiptap/react";
+import { useEffect, useState } from "react";
 
 // Define available fonts
-const FONTS = [
-  { label: "Lausanne", value: "Lausanne" },
+const BASE_FONTS = [
   { label: "Arial", value: "Arial" },
   { label: "Helvetica", value: "Helvetica" },
   { label: "Times New Roman", value: "Times New Roman" },
@@ -24,11 +24,30 @@ const FONTS = [
   { label: "Verdana", value: "Verdana" },
 ];
 
+// Apple system font
+const APPLE_FONT = {
+  label: "San Francisco",
+  value: "-apple-system, BlinkMacSystemFont, 'San Francisco'",
+};
+
 interface FontSelectorProps {
   editor: Editor | null;
 }
 
 export function FontSelector({ editor }: FontSelectorProps) {
+  const [fonts, setFonts] = useState(BASE_FONTS);
+
+  useEffect(() => {
+    // Check if user is on an Apple device
+    const isAppleDevice = /Mac|iPhone|iPad|iPod/.test(navigator.platform);
+
+    if (isAppleDevice) {
+      setFonts([APPLE_FONT, ...BASE_FONTS]);
+    } else {
+      setFonts(BASE_FONTS);
+    }
+  }, []);
+
   if (!editor) return null;
 
   const getCurrentFont = () => {
@@ -58,7 +77,7 @@ export function FontSelector({ editor }: FontSelectorProps) {
               <SelectItem value="default" className="py-2">
                 Geist Sans
               </SelectItem>
-              {FONTS.map((font) => (
+              {fonts.map((font) => (
                 <SelectItem
                   key={font.value}
                   value={font.value}
