@@ -35,7 +35,7 @@ const LoginPage = () => {
       </div>
       <div className="flex flex-col gap-4 p-6 md:p-10">
         <div className="flex flex-1 items-center justify-center flex-col">
-          <div className="w-full max-w-xs items-center gap-1 flex flex-col font-medium text-xl">
+          <div className="w-full max-w-xs items-center justify-center gap-2 flex font-medium text-xl">
             <Image
               src={"/research.svg"}
               width={30}
