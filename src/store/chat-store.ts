@@ -24,6 +24,7 @@ interface ChatState {
   addAgentResponse: (content: MessageContent[]) => void;
   clearMessages: () => void;
   setIsAgent: (isAgent: boolean) => void;
+  setMessageAndTogglePanel: (message: string) => void;
 
   // Handlers
   handleSubmit: () => void;
@@ -71,6 +72,17 @@ export const useChatStore = create<ChatState>()(
         }),
       clearMessages: () => set({ messages: [] }),
       setIsAgent: (isAgent: boolean) => set({ isAgent }),
+      setMessageAndTogglePanel: (message: string) => {
+        set({ message });
+        // This is a custom event to toggle the panel visibility
+        const event = new CustomEvent("toggleChatPanel", {
+          detail: {
+            shouldOpen: !!message.trim(),
+            forceToggle: !message.trim(),
+          },
+        });
+        window.dispatchEvent(event);
+      },
 
       // Handlers
       handleSubmit: () => {

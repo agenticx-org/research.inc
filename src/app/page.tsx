@@ -16,15 +16,27 @@ export default function Home() {
   const [isRightPanelVisible, setIsRightPanelVisible] = useState(true);
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "l" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
+    const handleToggleChatPanel = (
+      e: CustomEvent<{ shouldOpen: boolean; forceToggle?: boolean }>
+    ) => {
+      if (e.detail.shouldOpen) {
+        // If shouldOpen is true, always open the panel
+        setIsRightPanelVisible(true);
+      } else if (e.detail.forceToggle) {
+        // If forceToggle is true, always toggle the panel
         setIsRightPanelVisible((prev) => !prev);
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener(
+      "toggleChatPanel",
+      handleToggleChatPanel as EventListener
+    );
+    return () =>
+      window.removeEventListener(
+        "toggleChatPanel",
+        handleToggleChatPanel as EventListener
+      );
   }, []);
 
   return (
