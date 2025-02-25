@@ -1,5 +1,6 @@
 "use client";
 
+import CharacterCount from "@tiptap/extension-character-count";
 import Code from "@tiptap/extension-code";
 import Color from "@tiptap/extension-color";
 import FontFamily from "@tiptap/extension-font-family";
@@ -28,6 +29,7 @@ const Editor = () => {
       Underline,
       TextStyle.configure(),
       Color.configure(),
+      CharacterCount,
       Code.configure({
         HTMLAttributes: {
           class: "font-mono bg-gray-100 rounded px-1.5 py-0.5",
@@ -67,12 +69,25 @@ const Editor = () => {
     },
   });
 
+  // Get word and character count
+  const wordCount = editor?.storage.characterCount?.words() || 0;
+  const charCount = editor?.storage.characterCount?.characters() || 0;
+
   return (
-    <>
+    <div className="relative h-full flex flex-col">
       <EditorToolbar editor={editor} />
-      {editor && <EditorBubbleMenu editor={editor} />}
-      <EditorContent editor={editor} />
-    </>
+      <div className="flex-grow relative">
+        {editor && <EditorBubbleMenu editor={editor} />}
+        <EditorContent editor={editor} />
+      </div>
+
+      {/* Word and character count display - sticky at bottom with inverted colors */}
+      <div className="sticky bottom-2 left-0 right-0 flex justify-center z-10">
+        <div className="text-xs text-white bg-black opacity-80 px-2 py-1 rounded-md shadow-sm">
+          {wordCount} words | {charCount} characters
+        </div>
+      </div>
+    </div>
   );
 };
 
