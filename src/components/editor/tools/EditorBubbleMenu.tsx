@@ -36,7 +36,7 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
 
         if (selectedText && selectedText.trim()) {
           // If text is selected, add it to chat and open panel
-          setMessageAndTogglePanel(selectedText);
+          setMessageAndTogglePanel(selectedText, true);
         } else {
           // If no text is selected, just toggle the panel with empty message
           const event = new CustomEvent("toggleChatPanel", {
@@ -82,7 +82,7 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
     const { from, to } = editor.state.selection;
     const selectedText = editor.state.doc.textBetween(from, to, " ");
     if (selectedText && selectedText.trim()) {
-      setMessageAndTogglePanel(selectedText);
+      setMessageAndTogglePanel(selectedText, true);
     } else {
       // If no text is selected, just toggle the panel
       const event = new CustomEvent("toggleChatPanel", {
