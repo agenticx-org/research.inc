@@ -45,6 +45,12 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
           window.dispatchEvent(event);
         }
       }
+
+      // Add Command+K shortcut for Edit functionality
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        handleEdit();
+      }
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -86,6 +92,20 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
     }
   };
 
+  // Add handleEdit function
+  const handleEdit = () => {
+    const { from, to } = editor.state.selection;
+    const selectedText = editor.state.doc.textBetween(from, to, " ");
+
+    if (selectedText && selectedText.trim()) {
+      // Dispatch a custom event for edit functionality
+      const event = new CustomEvent("editSelectedText", {
+        detail: { text: selectedText },
+      });
+      window.dispatchEvent(event);
+    }
+  };
+
   return (
     <BubbleMenu
       editor={editor}
@@ -93,24 +113,34 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
         duration: 100,
         animation: "shift-away",
       }}
-      className="flex overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md"
+      className="flex overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md min-w-[365px]"
     >
       <TooltipProvider delayDuration={0}>
         <div className="flex items-center gap-1 p-1">
-          {/* Add to Chat button - moved to the beginning */}
-          <>
-            <button
-              onClick={handleAddToChat}
-              className="px-2 py-1 rounded text-xs font-medium transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-            >
-              Add to Chat
-              <span className="ml-1 text-[10px] text-gray-500 font-normal">
-                ⌘L
-              </span>
-            </button>
-            {/* Separator */}
-            <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-1" />
-          </>
+          {/* Add to Chat button */}
+          <button
+            onClick={handleAddToChat}
+            className="px-2 py-1 rounded text-xs font-medium transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+          >
+            Add to Chat
+            <span className="ml-1 text-[10px] text-gray-500 font-normal">
+              ⌘L
+            </span>
+          </button>
+
+          {/* Edit button - new */}
+          <button
+            onClick={handleEdit}
+            className="px-2 py-1 rounded text-xs font-medium transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+          >
+            Edit
+            <span className="ml-1 text-[10px] text-gray-500 font-normal">
+              ⌘K
+            </span>
+          </button>
+
+          {/* Separator - moved after both buttons */}
+          <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-1" />
 
           {/* Formatting options */}
           <Tooltip>
