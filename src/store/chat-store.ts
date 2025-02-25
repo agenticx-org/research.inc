@@ -3,6 +3,23 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 
+// Define a type for selected text items with color
+interface SelectedTextItem {
+  id: string;
+  text: string;
+  color: string;
+}
+
+// Array of colors to cycle through for selections
+const SELECTION_COLORS = [
+  "bg-blue-50 border-blue-200",
+  "bg-green-50 border-green-200",
+  "bg-purple-50 border-purple-200",
+  "bg-amber-50 border-amber-200",
+  "bg-rose-50 border-rose-200",
+  "bg-cyan-50 border-cyan-200",
+];
+
 interface ChatState {
   // State
   message: string;
@@ -11,7 +28,7 @@ interface ChatState {
   selectedModel: ModelId;
   messages: Message[];
   isAgent: boolean;
-  selectedText: string;
+  selectedTextItems: SelectedTextItem[];
 
   // Actions
   setMessage: (message: string) => void;
@@ -26,8 +43,9 @@ interface ChatState {
   clearMessages: () => void;
   setIsAgent: (isAgent: boolean) => void;
   setMessageAndTogglePanel: (message: string, isSelectedText?: boolean) => void;
-  setSelectedText: (text: string) => void;
-  clearSelectedText: () => void;
+  addSelectedText: (text: string) => void;
+  removeSelectedText: (id: string) => void;
+  clearSelectedTexts: () => void;
 
   // Handlers
   handleSubmit: () => void;
@@ -44,7 +62,7 @@ export const useChatStore = create<ChatState>()(
       selectedModel: "claude3.7" as ModelId,
       messages: [],
       isAgent: true,
-      selectedText: "",
+      selectedTextItems: [],
 
       // Actions
       setMessage: (message: string) => set({ message }),
@@ -76,11 +94,35 @@ export const useChatStore = create<ChatState>()(
         }),
       clearMessages: () => set({ messages: [] }),
       setIsAgent: (isAgent: boolean) => set({ isAgent }),
-      setSelectedText: (text: string) => set({ selectedText: text }),
-      clearSelectedText: () => set({ selectedText: "" }),
+
+      // Add a new selected text item with a unique color
+      addSelectedText: (text: string) =>
+        set((state) => {
+          if (text.trim()) {
+            const colorIndex =
+              state.selectedTextItems.length % SELECTION_COLORS.length;
+            state.selectedTextItems.push({
+              id: Date.now().toString(),
+              text,
+              color: SELECTION_COLORS[colorIndex],
+            });
+          }
+        }),
+
+      // Remove a selected text item by id
+      removeSelectedText: (id: string) =>
+        set((state) => {
+          state.selectedTextItems = state.selectedTextItems.filter(
+            (item) => item.id !== id
+          );
+        }),
+
+      // Clear all selected text items
+      clearSelectedTexts: () => set({ selectedTextItems: [] }),
+
       setMessageAndTogglePanel: (message: string, isSelectedText = false) => {
         if (isSelectedText) {
-          set({ selectedText: message });
+          get().addSelectedText(message);
         } else {
           set({ message });
         }
@@ -96,8 +138,18 @@ export const useChatStore = create<ChatState>()(
 
       // Handlers
       handleSubmit: () => {
-        const { message, files, selectedText } = get();
-        const textToSend = selectedText || message;
+        const { message, files, selectedTextItems } = get();
+
+        // Combine all selected texts with the message
+        let textToSend = message;
+
+        if (selectedTextItems.length > 0) {
+          const selectedTextsContent = selectedTextItems
+            .map((item) => item.text)
+            .join("\n\n");
+
+          textToSend = selectedTextsContent + (message ? `\n\n${message}` : "");
+        }
 
         if (textToSend.trim() || files.length > 0) {
           // Add user message
@@ -108,7 +160,7 @@ export const useChatStore = create<ChatState>()(
             });
             state.isLoading = true;
             state.message = "";
-            state.selectedText = "";
+            state.selectedTextItems = [];
             state.files = [];
           });
 

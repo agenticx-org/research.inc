@@ -20,12 +20,12 @@ export function Chat() {
     handleFileChange,
     setIsAgent,
     clearMessages,
-    clearSelectedText,
+    clearSelectedTexts,
   } = useChatStore();
 
   const handleClearChat = () => {
     clearMessages();
-    clearSelectedText();
+    clearSelectedTexts();
   };
 
   return (
