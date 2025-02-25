@@ -1,5 +1,6 @@
 "use client";
 
+import { useChatStore } from "@/store/chat-store";
 import CharacterCount from "@tiptap/extension-character-count";
 import Code from "@tiptap/extension-code";
 import Color from "@tiptap/extension-color";
@@ -14,11 +15,15 @@ import TextStyle from "@tiptap/extension-text-style";
 import Underline from "@tiptap/extension-underline";
 import { useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import { useEffect } from "react";
 import { EditorContent } from "./EditorContent";
 import { EditorToolbar } from "./EditorToolbar";
+import { SelectionHighlight } from "./extensions/SelectionHighlight";
 import { EditorBubbleMenu } from "./tools";
 
 const Editor = () => {
+  const { selectedTextItems } = useChatStore();
+
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
@@ -30,6 +35,7 @@ const Editor = () => {
       TextStyle.configure(),
       Color.configure(),
       CharacterCount,
+      SelectionHighlight,
       Code.configure({
         HTMLAttributes: {
           class: "font-mono bg-gray-100 rounded px-1.5 py-0.5",
@@ -68,6 +74,100 @@ const Editor = () => {
       },
     },
   });
+
+  // Sync selected text items with editor highlights
+  useEffect(() => {
+    if (!editor) return;
+
+    // Clear all highlights first
+    editor.commands.clearHighlights();
+
+    // Add highlights for each selected text item
+    selectedTextItems.forEach((item) => {
+      // If we have stored position information, use it directly
+      if (item.from !== undefined && item.to !== undefined) {
+        // Verify the positions are still valid in the current document
+        const docSize = editor.state.doc.content.size;
+        if (item.from >= 0 && item.to <= docSize) {
+          // Check if the text at these positions matches our stored text
+          const textAtPos = editor.state.doc.textBetween(
+            item.from,
+            item.to,
+            " "
+          );
+          if (textAtPos.trim() === item.text.trim()) {
+            // Positions are valid and text matches, use them directly
+            editor.commands.addHighlight(
+              { id: item.id, color: item.color },
+              item.from,
+              item.to
+            );
+            return;
+          }
+        }
+      }
+
+      // If we don't have position info or it's invalid, fall back to text search
+      // Find the text in the document
+      const doc = editor.state.doc;
+      const itemText = item.text.trim();
+
+      // More precise text search that respects paragraph boundaries
+      let found = false;
+
+      // Search for the text in each paragraph separately
+      doc.forEach((node, offset) => {
+        if (found) return;
+
+        // Only search in paragraph nodes
+        if (node.type.name === "paragraph") {
+          const nodeText = node.textContent;
+
+          // If this paragraph contains the exact text we're looking for
+          if (nodeText.trim() === itemText) {
+            // Highlight the entire paragraph
+            editor.commands.addHighlight(
+              { id: item.id, color: item.color },
+              offset,
+              offset + node.nodeSize - 1 // -1 to exclude the end token
+            );
+            found = true;
+            return;
+          }
+
+          // If this paragraph contains the text as a substring
+          const startPos = nodeText.indexOf(itemText);
+          if (startPos !== -1) {
+            // Make sure it's a complete word or phrase
+            const from = offset + startPos;
+            const to = from + itemText.length;
+
+            editor.commands.addHighlight(
+              { id: item.id, color: item.color },
+              from,
+              to
+            );
+            found = true;
+            return;
+          }
+        }
+      });
+
+      // Fallback to the old method if not found by node search
+      if (!found) {
+        const content = doc.textContent;
+        const foundIndex = content.indexOf(itemText);
+
+        if (foundIndex !== -1) {
+          editor.commands.addHighlight(
+            { id: item.id, color: item.color },
+            foundIndex,
+            foundIndex + itemText.length
+          );
+        }
+      }
+    });
+  }, [editor, selectedTextItems]);
 
   // Get word and character count
   const wordCount = editor?.storage.characterCount?.words() || 0;

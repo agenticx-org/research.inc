@@ -8,10 +8,13 @@ interface SelectedTextItem {
   id: string;
   text: string;
   color: string;
+  from?: number;
+  to?: number;
+  path?: number[];
 }
 
 // Array of colors to cycle through for selections
-const SELECTION_COLORS = [
+export const SELECTION_COLORS = [
   "bg-blue-50 border-blue-200",
   "bg-green-50 border-green-200",
   "bg-purple-50 border-purple-200",
@@ -44,8 +47,21 @@ interface ChatState {
   addAgentResponse: (content: MessageContent[]) => void;
   clearMessages: () => void;
   setIsAgent: (isAgent: boolean) => void;
-  setMessageAndTogglePanel: (message: string, isSelectedText?: boolean) => void;
-  addSelectedText: (text: string) => void;
+  setMessageAndTogglePanel: (
+    message: string,
+    isSelectedText?: boolean,
+    from?: number,
+    to?: number,
+    path?: number[]
+  ) => void;
+  addSelectedText: (
+    text: string,
+    id?: string,
+    color?: string,
+    from?: number,
+    to?: number,
+    path?: number[]
+  ) => void;
   removeSelectedText: (id: string) => void;
   clearSelectedTexts: () => void;
 
@@ -98,7 +114,14 @@ export const useChatStore = create<ChatState>()(
       setIsAgent: (isAgent: boolean) => set({ isAgent }),
 
       // Add a new selected text item with a unique color
-      addSelectedText: (text: string) =>
+      addSelectedText: (
+        text: string,
+        id?: string,
+        color?: string,
+        from?: number,
+        to?: number,
+        path?: number[]
+      ) =>
         set((state) => {
           const trimmedText = text.trim();
           if (trimmedText) {
@@ -112,9 +135,12 @@ export const useChatStore = create<ChatState>()(
               const colorIndex =
                 state.selectedTextItems.length % SELECTION_COLORS.length;
               state.selectedTextItems.push({
-                id: Date.now().toString(),
+                id: id || Date.now().toString(),
                 text: trimmedText,
-                color: SELECTION_COLORS[colorIndex],
+                color: color || SELECTION_COLORS[colorIndex],
+                from,
+                to,
+                path,
               });
             }
           }
@@ -131,9 +157,24 @@ export const useChatStore = create<ChatState>()(
       // Clear all selected text items
       clearSelectedTexts: () => set({ selectedTextItems: [] }),
 
-      setMessageAndTogglePanel: (message: string, isSelectedText = false) => {
+      setMessageAndTogglePanel: (
+        message: string,
+        isSelectedText = false,
+        from?: number,
+        to?: number,
+        path?: number[]
+      ) => {
         if (isSelectedText) {
-          get().addSelectedText(message);
+          // Generate a unique ID for this selection
+          const id = Date.now().toString();
+
+          // Calculate the color index based on current selections
+          const { selectedTextItems } = get();
+          const colorIndex = selectedTextItems.length % SELECTION_COLORS.length;
+          const colorClass = SELECTION_COLORS[colorIndex];
+
+          // Add the selected text with position information
+          get().addSelectedText(message, id, colorClass, from, to, path);
         } else {
           set({ message });
         }

@@ -17,6 +17,9 @@ import {
 import { BubbleMenu, Editor } from "@tiptap/react";
 import { useEffect, useState } from "react";
 
+// Import SELECTION_COLORS from the store
+import { SELECTION_COLORS } from "@/store/chat-store";
+
 interface EditorBubbleMenuProps {
   editor: Editor;
 }
@@ -34,7 +37,39 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
       if (e.key === "l" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         const { from, to } = editor.state.selection;
-        const selectedText = editor.state.doc.textBetween(from, to, " ");
+
+        // Get the selected text with proper handling of paragraph boundaries
+        let selectedText = "";
+
+        // Get the resolved positions to check if we're crossing paragraph boundaries
+        const $from = editor.state.doc.resolve(from);
+        const $to = editor.state.doc.resolve(to);
+
+        // Check if the selection spans multiple blocks
+        const sameBlock =
+          $from.sameParent($to) &&
+          $from.parent.type.name === $to.parent.type.name;
+
+        // If we're in the same block, get the text directly
+        if (sameBlock) {
+          selectedText = editor.state.doc.textBetween(from, to, " ");
+        } else {
+          // For multi-block selections, use the fragment approach
+          const fragment = editor.state.doc.slice(from, to).content;
+
+          // Iterate through the fragment to properly handle paragraphs
+          fragment.forEach((node) => {
+            if (selectedText && node.type.name === "paragraph") {
+              selectedText += "\n\n"; // Add paragraph breaks
+            }
+            selectedText += node.textContent;
+          });
+        }
+
+        // If no content, fall back to simple text extraction
+        if (!selectedText) {
+          selectedText = editor.state.doc.textBetween(from, to, " ");
+        }
 
         if (selectedText && selectedText.trim()) {
           // Check if this is a duplicate
@@ -47,8 +82,22 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
             setShowDuplicateWarning(true);
             setTimeout(() => setShowDuplicateWarning(false), 2000);
           } else {
+            // Generate a unique ID for this selection
+            const id = Date.now().toString();
+
+            // Calculate the color index based on current selections
+            const colorIndex =
+              selectedTextItems.length % SELECTION_COLORS.length;
+            const colorClass = SELECTION_COLORS[colorIndex];
+
             // If text is selected, add it to chat and open panel
-            setMessageAndTogglePanel(selectedText, true);
+            addSelectedText(selectedText, id, colorClass, from, to);
+
+            // Also toggle the panel
+            const event = new CustomEvent("toggleChatPanel", {
+              detail: { shouldOpen: true, forceToggle: false },
+            });
+            window.dispatchEvent(event);
           }
         } else {
           // If no text is selected, just toggle the panel with empty message
@@ -68,7 +117,7 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [editor, setMessageAndTogglePanel, selectedTextItems]);
+  }, [editor, setMessageAndTogglePanel, selectedTextItems, addSelectedText]);
 
   if (!editor) return null;
 
@@ -93,7 +142,39 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
 
   const handleAddToChat = () => {
     const { from, to } = editor.state.selection;
-    const selectedText = editor.state.doc.textBetween(from, to, " ");
+
+    // Get the selected text with proper handling of paragraph boundaries
+    let selectedText = "";
+
+    // Get the resolved positions to check if we're crossing paragraph boundaries
+    const $from = editor.state.doc.resolve(from);
+    const $to = editor.state.doc.resolve(to);
+
+    // Check if the selection spans multiple blocks
+    const sameBlock =
+      $from.sameParent($to) && $from.parent.type.name === $to.parent.type.name;
+
+    // If we're in the same block, get the text directly
+    if (sameBlock) {
+      selectedText = editor.state.doc.textBetween(from, to, " ");
+    } else {
+      // For multi-block selections, use the fragment approach
+      const fragment = editor.state.doc.slice(from, to).content;
+
+      // Iterate through the fragment to properly handle paragraphs
+      fragment.forEach((node) => {
+        if (selectedText && node.type.name === "paragraph") {
+          selectedText += "\n\n"; // Add paragraph breaks
+        }
+        selectedText += node.textContent;
+      });
+    }
+
+    // If no content, fall back to simple text extraction
+    if (!selectedText) {
+      selectedText = editor.state.doc.textBetween(from, to, " ");
+    }
+
     if (selectedText && selectedText.trim()) {
       // Check if this is a duplicate
       const isDuplicate = selectedTextItems.some(
@@ -105,8 +186,15 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
         setShowDuplicateWarning(true);
         setTimeout(() => setShowDuplicateWarning(false), 2000);
       } else {
-        // Use addSelectedText directly to add a new selection
-        addSelectedText(selectedText);
+        // Generate a unique ID for this selection
+        const id = Date.now().toString();
+
+        // Calculate the color index based on current selections
+        const colorIndex = selectedTextItems.length % SELECTION_COLORS.length;
+        const colorClass = SELECTION_COLORS[colorIndex];
+
+        // Use addSelectedText directly to add a new selection with position information
+        addSelectedText(selectedText, id, colorClass, from, to);
 
         // Also toggle the panel to show it's been added
         const event = new CustomEvent("toggleChatPanel", {
@@ -126,7 +214,38 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
   // Add handleEdit function
   const handleEdit = () => {
     const { from, to } = editor.state.selection;
-    const selectedText = editor.state.doc.textBetween(from, to, " ");
+
+    // Get the selected text with proper handling of paragraph boundaries
+    let selectedText = "";
+
+    // Get the resolved positions to check if we're crossing paragraph boundaries
+    const $from = editor.state.doc.resolve(from);
+    const $to = editor.state.doc.resolve(to);
+
+    // Check if the selection spans multiple blocks
+    const sameBlock =
+      $from.sameParent($to) && $from.parent.type.name === $to.parent.type.name;
+
+    // If we're in the same block, get the text directly
+    if (sameBlock) {
+      selectedText = editor.state.doc.textBetween(from, to, " ");
+    } else {
+      // For multi-block selections, use the fragment approach
+      const fragment = editor.state.doc.slice(from, to).content;
+
+      // Iterate through the fragment to properly handle paragraphs
+      fragment.forEach((node) => {
+        if (selectedText && node.type.name === "paragraph") {
+          selectedText += "\n\n"; // Add paragraph breaks
+        }
+        selectedText += node.textContent;
+      });
+    }
+
+    // If no content, fall back to simple text extraction
+    if (!selectedText) {
+      selectedText = editor.state.doc.textBetween(from, to, " ");
+    }
 
     if (selectedText && selectedText.trim()) {
       // Dispatch a custom event for edit functionality
