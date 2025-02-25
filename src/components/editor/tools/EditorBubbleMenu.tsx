@@ -22,7 +22,7 @@ interface EditorBubbleMenuProps {
 }
 
 export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
-  const { setMessageAndTogglePanel } = useChatStore();
+  const { setMessageAndTogglePanel, addSelectedText } = useChatStore();
 
   // Add keyboard shortcut for Command+L to add selected text to chat
   useEffect(() => {
@@ -82,7 +82,14 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
     const { from, to } = editor.state.selection;
     const selectedText = editor.state.doc.textBetween(from, to, " ");
     if (selectedText && selectedText.trim()) {
-      setMessageAndTogglePanel(selectedText, true);
+      // Use addSelectedText directly to add a new selection
+      addSelectedText(selectedText);
+
+      // Also toggle the panel to show it's been added
+      const event = new CustomEvent("toggleChatPanel", {
+        detail: { shouldOpen: true, forceToggle: false },
+      });
+      window.dispatchEvent(event);
     } else {
       // If no text is selected, just toggle the panel
       const event = new CustomEvent("toggleChatPanel", {

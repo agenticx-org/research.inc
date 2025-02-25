@@ -43,7 +43,8 @@ export function ChatInput({
   onModeChange,
 }: ChatInputProps) {
   const [isAgent, setIsAgent] = useState(true);
-  const { selectedText, clearSelectedText } = useChatStore();
+  const { selectedTextItems, removeSelectedText, clearSelectedTexts } =
+    useChatStore();
 
   const handleModeChange = (checked: boolean) => {
     setIsAgent(checked);
@@ -52,8 +53,10 @@ export function ChatInput({
 
   const handleSubmit = () => {
     onSubmit();
-    clearSelectedText();
+    clearSelectedTexts();
   };
+
+  const hasSelectedItems = selectedTextItems.length > 0;
 
   return (
     <div className="w-full px-2 pt-2 pb-2">
@@ -94,19 +97,44 @@ export function ChatInput({
         </div>
       </div>
 
-      {selectedText && (
-        <div className="border rounded-t border-b-0 p-2 bg-zinc-50 flex items-center justify-between">
-          <div className="text-sm font-medium truncate flex-1">
-            {selectedText}
+      {hasSelectedItems && (
+        <div className="border rounded-t border-b-0 p-2 bg-zinc-50">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-xs font-medium text-gray-500">
+              {selectedTextItems.length} selection
+              {selectedTextItems.length !== 1 ? "s" : ""}
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 text-xs"
+              onClick={clearSelectedTexts}
+            >
+              Clear all
+            </Button>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6"
-            onClick={clearSelectedText}
-          >
-            <X className="size-3" />
-          </Button>
+
+          <div className="flex flex-col gap-2 max-h-[150px] overflow-y-auto">
+            {selectedTextItems.map((item) => (
+              <div
+                key={item.id}
+                className={cn(
+                  "relative p-2 rounded border text-sm flex items-start group",
+                  item.color
+                )}
+              >
+                <div className="flex-1 pr-6 truncate">{item.text}</div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-5 w-5 absolute right-1 top-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={() => removeSelectedText(item.id)}
+                >
+                  <X className="size-3" />
+                </Button>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
@@ -115,7 +143,7 @@ export function ChatInput({
         value={message}
         onValueChange={onMessageChange}
         onSubmit={handleSubmit}
-        className={cn("bg-white", selectedText && "rounded-t-none")}
+        className={cn("bg-white", hasSelectedItems && "rounded-t-none")}
       >
         <PromptInputTextarea
           placeholder="Ask me to do anything..."
@@ -151,7 +179,7 @@ export function ChatInput({
               size="icon"
               className="h-7 w-7"
               onClick={handleSubmit}
-              disabled={!message.trim() && !selectedText.trim()}
+              disabled={!message.trim() && !hasSelectedItems}
             >
               {isLoading ? (
                 <Square className="size-4 fill-current" weight="fill" />
