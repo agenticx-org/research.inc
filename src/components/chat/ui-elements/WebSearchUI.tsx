@@ -5,6 +5,15 @@ interface WebSearchUIProps {
   content: WebSearchElement;
 }
 
+const isValidUrl = (url: string): boolean => {
+  try {
+    const parsedUrl = new URL(url);
+    return ["http:", "https:"].includes(parsedUrl.protocol);
+  } catch {
+    return false;
+  }
+};
+
 export function WebSearchUI({ content }: WebSearchUIProps) {
   return (
     <div className="rounded-lg border border-gray-100 bg-white overflow-hidden shadow-none">
@@ -13,32 +22,14 @@ export function WebSearchUI({ content }: WebSearchUIProps) {
         <h3 className="text-sm font-medium">Web Search Result</h3>
       </div>
       <div className="px-3 pb-3">
-const isValidUrl = (url: string): boolean => {
-  try {
-    const parsedUrl = new URL(url);
-    return ['http:', 'https:'].includes(parsedUrl.protocol);
-  } catch (e) {
-    return false;
-  }
-};
-
-export function WebSearchUI({ content }: WebSearchUIProps) {
-  return (
-    <div className="rounded-lg border border-gray-100 bg-white overflow-hidden shadow-none">
-      {/* ... */}
-      <div className="px-3 pb-3">
         <a
-          href={isValidUrl(content.url) ? content.url : '#'}
+          href={isValidUrl(content.url) ? content.url : "#"}
           target="_blank"
           rel="noopener noreferrer"
           className="text-sm font-medium text-blue-600 hover:underline"
         >
           {content.title}
         </a>
-      </div>
-    </div>
-  );
-}
         <p className="text-xs mt-1 text-gray-600">{content.snippet}</p>
         <div className="text-xs text-gray-500 mt-1 truncate">{content.url}</div>
       </div>
