@@ -119,15 +119,37 @@ export function ChatInput({
               <div
                 key={item.id}
                 className={cn(
-                  "relative p-2 rounded border text-sm flex items-start group",
+                  "relative px-2 py-1 rounded border text-xs flex items-center group",
                   item.color
                 )}
               >
-                <div className="flex-1 pr-6 truncate">{item.text}</div>
+                <div
+                  className={cn(
+                    "w-3 h-3 rounded-full mr-2 mt-0.5 flex-shrink-0",
+                    item.color.includes("blue")
+                      ? "bg-blue-400"
+                      : item.color.includes("green")
+                      ? "bg-green-400"
+                      : item.color.includes("purple")
+                      ? "bg-purple-400"
+                      : item.color.includes("amber")
+                      ? "bg-amber-400"
+                      : item.color.includes("rose")
+                      ? "bg-rose-400"
+                      : item.color.includes("teal")
+                      ? "bg-teal-400"
+                      : item.color.includes("indigo")
+                      ? "bg-indigo-400"
+                      : item.color.includes("orange")
+                      ? "bg-orange-400"
+                      : "bg-gray-400"
+                  )}
+                />
+                <div className="flex-1 pr-4 truncate">{item.text}</div>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-5 w-5 absolute right-1 top-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="h-5 w-5 a opacity-0 group-hover:opacity-100 transition-opacity"
                   onClick={() => removeSelectedText(item.id)}
                 >
                   <X className="size-3" />
