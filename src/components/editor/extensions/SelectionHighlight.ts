@@ -1,5 +1,6 @@
 import { Extension } from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
+import { ReplaceStep } from "@tiptap/pm/transform";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
 
 export interface SelectionHighlightOptions {
@@ -130,11 +131,38 @@ export const SelectionHighlight = Extension.create<SelectionHighlightOptions>({
             if (tr.docChanged) {
               const { highlights } = storage;
 
+              // Find insert positions from the transaction steps
+              const insertPositions: number[] = [];
+              tr.steps.forEach((step) => {
+                if (step instanceof ReplaceStep) {
+                  // If it's a text insertion (from = to in the step, and slice has content)
+                  if (step.from === step.to && step.slice.content.size > 0) {
+                    insertPositions.push(step.from);
+                  }
+                }
+              });
+
               // Map each highlight to its new position
               storage.highlights = highlights.map(
                 (highlight: HighlightItem) => {
-                  const newFrom = tr.mapping.map(highlight.from);
-                  const newTo = tr.mapping.map(highlight.to);
+                  // Get the current positions
+                  const oldFrom = highlight.from;
+                  const oldTo = highlight.to;
+
+                  // Map the positions to the new document
+                  const newFrom = tr.mapping.map(oldFrom);
+                  let newTo = tr.mapping.map(oldTo);
+
+                  // Check if any insertions happened exactly at the end of this highlight
+                  const wasInsertAtEnd = insertPositions.includes(oldTo);
+
+                  // If text was inserted at the end of the highlight, keep the original end position
+                  if (wasInsertAtEnd) {
+                    // Calculate how much text was inserted
+                    const insertedLength = newTo - oldTo;
+                    // Adjust the end position to exclude the inserted text
+                    newTo = newTo - insertedLength;
+                  }
 
                   return {
                     ...highlight,
