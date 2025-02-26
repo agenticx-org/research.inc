@@ -130,21 +130,50 @@ export const SelectionHighlight = Extension.create<SelectionHighlightOptions>({
             // If the document changed, we need to map our highlights to the new positions
             if (tr.docChanged) {
               const { highlights } = storage;
+              const docContent = tr.doc.textContent;
 
               // Find insert positions from the transaction steps
               const insertPositions: number[] = [];
+              const deleteRanges: { from: number; to: number }[] = [];
+
               tr.steps.forEach((step) => {
                 if (step instanceof ReplaceStep) {
                   // If it's a text insertion (from = to in the step, and slice has content)
                   if (step.from === step.to && step.slice.content.size > 0) {
                     insertPositions.push(step.from);
                   }
+
+                  // If it's a deletion (slice is empty and from != to)
+                  if (step.from !== step.to && step.slice.content.size === 0) {
+                    deleteRanges.push({ from: step.from, to: step.to });
+                  }
                 }
               });
 
-              // Map each highlight to its new position
-              storage.highlights = highlights.map(
-                (highlight: HighlightItem) => {
+              // Filter out highlights that no longer exist in the document
+              // and map remaining highlights to their new positions
+              storage.highlights = highlights
+                .filter((highlight: HighlightItem) => {
+                  // Get the text of this highlight from the previous document state
+                  const prevDoc = tr.before;
+                  let highlightText = "";
+
+                  try {
+                    highlightText = prevDoc
+                      .textBetween(highlight.from, highlight.to, " ")
+                      .trim();
+                  } catch {
+                    // If we can't get the text, assume the highlight is invalid
+                    return false;
+                  }
+
+                  // Check if this text still exists in the document
+                  return (
+                    highlightText.length > 0 &&
+                    docContent.includes(highlightText)
+                  );
+                })
+                .map((highlight: HighlightItem) => {
                   // Get the current positions
                   const oldFrom = highlight.from;
                   const oldTo = highlight.to;
@@ -169,8 +198,7 @@ export const SelectionHighlight = Extension.create<SelectionHighlightOptions>({
                     from: newFrom,
                     to: newTo,
                   };
-                }
-              );
+                });
             }
 
             return prev;
