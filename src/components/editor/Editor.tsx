@@ -73,6 +73,22 @@ const Editor = () => {
           "prose prose-sm sm:prose sm:max-w-none max-w-none w-full focus:outline-none",
       },
     },
+    onUpdate: ({ editor }) => {
+      // Check if any highlighted text has been deleted
+      if (selectedTextItems.length > 0) {
+        const currentContent = editor.state.doc.textContent;
+
+        // Check each selected text item to see if it still exists in the document
+        selectedTextItems.forEach((item) => {
+          const itemText = item.text.trim();
+
+          // If the text no longer exists in the document, remove it from the store
+          if (!currentContent.includes(itemText)) {
+            removeSelectedText(item.id);
+          }
+        });
+      }
+    },
   });
 
   // Sync selected text items with editor highlights
