@@ -144,15 +144,13 @@ export const suggestionItems = [
       );
 
       if (videoLink && ytregex.test(videoLink)) {
-        // Since setYoutubeVideo is not available, we'll insert a paragraph with the link
         editor
           .chain()
           .focus()
           .deleteRange(range)
-          .setNode("paragraph")
-          .insertContent(
-            `<a href="${videoLink}" target="_blank">${videoLink}</a>`
-          )
+          .setYoutubeVideo({
+            src: videoLink,
+          })
           .run();
       } else {
         if (videoLink !== null) {

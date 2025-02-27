@@ -14,6 +14,7 @@ import Placeholder from "@tiptap/extension-placeholder";
 import TextAlign from "@tiptap/extension-text-align";
 import TextStyle from "@tiptap/extension-text-style";
 import Underline from "@tiptap/extension-underline";
+import Youtube from "@tiptap/extension-youtube";
 import { useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useEffect } from "react";
@@ -79,6 +80,16 @@ const Editor = () => {
           class: "max-w-full h-auto",
         },
         allowBase64: true,
+      }),
+      Youtube.configure({
+        HTMLAttributes: {
+          class: "w-full aspect-video rounded-md overflow-hidden my-4",
+        },
+        width: 640,
+        height: 480,
+        controls: true,
+        nocookie: true,
+        modestBranding: true,
       }),
     ],
     content: "",
