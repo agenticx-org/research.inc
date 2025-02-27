@@ -1,7 +1,6 @@
 import {
   CheckSquare,
   Code,
-  Image,
   ListBullets,
   ListNumbers,
   Quotes,
@@ -14,27 +13,6 @@ import {
 } from "@phosphor-icons/react";
 import type { Editor, Range } from "@tiptap/core";
 import { Command, renderItems } from "../extensions/SlashCommand";
-
-// Define a function for uploading files
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const uploadImage = (file: File, view: any, pos: number) => {
-  // This is a placeholder for the actual image upload functionality
-  // In a real implementation, you would upload the file to a server
-  // and then insert the image at the given position
-  const reader = new FileReader();
-  reader.onload = () => {
-    if (typeof reader.result === "string") {
-      const image = reader.result;
-      view.dispatch(
-        view.state.tr.insert(
-          pos,
-          view.state.schema.nodes.image.create({ src: image })
-        )
-      );
-    }
-  };
-  reader.readAsDataURL(file);
-};
 
 interface CommandProps {
   editor: Editor;
@@ -148,27 +126,6 @@ export const suggestionItems = [
     icon: <Code size={18} />,
     command: ({ editor, range }: CommandProps) => {
       editor.chain().focus().deleteRange(range).toggleCodeBlock().run();
-    },
-  },
-  {
-    title: "Image",
-    description: "Upload an image from your computer.",
-    searchTerms: ["photo", "picture", "media"],
-    icon: <Image size={18} />,
-    command: ({ editor, range }: CommandProps) => {
-      editor.chain().focus().deleteRange(range).run();
-      // upload image
-      const input = document.createElement("input");
-      input.type = "file";
-      input.accept = "image/*";
-      input.onchange = async () => {
-        if (input.files?.length) {
-          const file = input.files[0];
-          const pos = editor.view.state.selection.from;
-          uploadImage(file, editor.view, pos);
-        }
-      };
-      input.click();
     },
   },
   {
