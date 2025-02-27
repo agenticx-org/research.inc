@@ -1,6 +1,7 @@
 "use client";
 
 import { useChatStore } from "@/store/chat-store";
+import { useEditorStore } from "@/store/editor-store";
 import CharacterCount from "@tiptap/extension-character-count";
 import Code from "@tiptap/extension-code";
 import Color from "@tiptap/extension-color";
@@ -16,10 +17,23 @@ import Underline from "@tiptap/extension-underline";
 import { useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useEffect } from "react";
+import tunnel from "tunnel-rat";
+import {
+  EditorCommand,
+  EditorCommandEmpty,
+  EditorCommandItem,
+  EditorCommandList,
+  EditorCommandTunnelContext,
+} from "./components/EditorCommand";
 import { EditorContent } from "./EditorContent";
 import { EditorToolbar } from "./EditorToolbar";
 import { SelectionHighlight } from "./extensions/SelectionHighlight";
+import { handleCommandNavigation } from "./extensions/SlashCommand";
 import { EditorBubbleMenu } from "./tools";
+import { slashCommand, suggestionItems } from "./tools/SlashCommand";
+
+// Create a tunnel for the slash command
+const commandTunnel = tunnel();
 
 const Editor = () => {
   const { selectedTextItems, removeSelectedText } = useChatStore();
@@ -36,6 +50,7 @@ const Editor = () => {
       Color.configure(),
       CharacterCount,
       SelectionHighlight,
+      slashCommand,
       Code.configure({
         HTMLAttributes: {
           class: "font-mono bg-gray-100 rounded px-1.5 py-0.5",
@@ -71,6 +86,9 @@ const Editor = () => {
       attributes: {
         class:
           "prose prose-sm sm:prose sm:max-w-none max-w-none w-full focus:outline-none",
+      },
+      handleDOMEvents: {
+        keydown: (_view, event) => handleCommandNavigation(event),
       },
     },
     onUpdate: ({ editor }) => {
@@ -218,20 +236,54 @@ const Editor = () => {
   const charCount = editor?.storage.characterCount?.characters() || 0;
 
   return (
-    <div className="relative h-full flex flex-col">
-      <EditorToolbar editor={editor} />
-      <div className="flex-grow relative">
-        {editor && <EditorBubbleMenu editor={editor} />}
-        <EditorContent editor={editor} />
-      </div>
+    <EditorCommandTunnelContext.Provider value={commandTunnel}>
+      <div className="relative h-full flex flex-col">
+        <EditorToolbar editor={editor} />
+        <div className="flex-grow relative">
+          {editor && <EditorBubbleMenu editor={editor} />}
+          <EditorContent editor={editor} />
 
-      {/* Word and character count display - sticky at bottom with inverted colors */}
-      <div className="sticky bottom-2 left-0 right-0 flex justify-center z-10">
-        <div className="text-xs text-white bg-black opacity-80 px-2 py-1 rounded-md shadow-sm">
-          {wordCount} words | {charCount} characters
+          {/* Slash Command UI */}
+          <EditorCommand className="z-50 h-auto max-h-[330px] overflow-y-auto scrollbar-custom rounded-md border border-muted bg-background px-1 py-2 shadow-md transition-all">
+            <EditorCommandEmpty className="px-2 text-muted-foreground">
+              No results
+            </EditorCommandEmpty>
+            <EditorCommandList>
+              {suggestionItems.map((item) => (
+                <EditorCommandItem
+                  value={item.title}
+                  key={item.title}
+                  className="flex w-full items-center space-x-2 rounded-md px-2 py-1 text-left text-sm hover:bg-accent aria-selected:bg-accent"
+                  onSelect={() => {
+                    const range = useEditorStore.getState().range;
+                    if (range && editor) {
+                      item.command({ editor, range });
+                    }
+                  }}
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-md border border-muted bg-background">
+                    {item.icon}
+                  </div>
+                  <div>
+                    <p className="font-medium">{item.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {item.description}
+                    </p>
+                  </div>
+                </EditorCommandItem>
+              ))}
+            </EditorCommandList>
+          </EditorCommand>
+        </div>
+
+        {/* Word and character count display - sticky at bottom with inverted colors */}
+        <div className="sticky bottom-2 left-0 right-0 flex justify-center z-10">
+          <div className="text-xs text-white bg-black opacity-80 px-2 py-1 rounded-md shadow-sm">
+            {wordCount} words | {charCount} characters
+          </div>
         </div>
       </div>
-    </div>
+    </EditorCommandTunnelContext.Provider>
   );
 };
 
