@@ -19,12 +19,15 @@ interface CommandProps {
   range: Range;
 }
 
+// Smaller icon size constant
+const ICON_SIZE = 14;
+
 export const suggestionItems = [
   {
     title: "Text",
     description: "Just start typing with plain text.",
     searchTerms: ["p", "paragraph"],
-    icon: <TextT size={18} />,
+    icon: <TextT size={ICON_SIZE} className="text-muted-foreground" />,
     command: ({ editor, range }: CommandProps) => {
       editor
         .chain()
@@ -38,7 +41,7 @@ export const suggestionItems = [
     title: "To-do List",
     description: "Track tasks with a to-do list.",
     searchTerms: ["todo", "task", "list", "check", "checkbox"],
-    icon: <CheckSquare size={18} />,
+    icon: <CheckSquare size={ICON_SIZE} className="text-muted-foreground" />,
     command: ({ editor, range }: CommandProps) => {
       // Since toggleTaskList is not available, we'll use a regular bullet list
       editor.chain().focus().deleteRange(range).toggleBulletList().run();
@@ -48,7 +51,7 @@ export const suggestionItems = [
     title: "Heading 1",
     description: "Big section heading.",
     searchTerms: ["title", "big", "large"],
-    icon: <TextH size={18} />,
+    icon: <TextH size={ICON_SIZE} className="text-muted-foreground" />,
     command: ({ editor, range }: CommandProps) => {
       editor
         .chain()
@@ -62,7 +65,7 @@ export const suggestionItems = [
     title: "Heading 2",
     description: "Medium section heading.",
     searchTerms: ["subtitle", "medium"],
-    icon: <TextHTwo size={18} />,
+    icon: <TextHTwo size={ICON_SIZE} className="text-muted-foreground" />,
     command: ({ editor, range }: CommandProps) => {
       editor
         .chain()
@@ -76,7 +79,7 @@ export const suggestionItems = [
     title: "Heading 3",
     description: "Small section heading.",
     searchTerms: ["subtitle", "small"],
-    icon: <TextHThree size={18} />,
+    icon: <TextHThree size={ICON_SIZE} className="text-muted-foreground" />,
     command: ({ editor, range }: CommandProps) => {
       editor
         .chain()
@@ -90,7 +93,7 @@ export const suggestionItems = [
     title: "Bullet List",
     description: "Create a simple bullet list.",
     searchTerms: ["unordered", "point"],
-    icon: <ListBullets size={18} />,
+    icon: <ListBullets size={ICON_SIZE} className="text-muted-foreground" />,
     command: ({ editor, range }: CommandProps) => {
       editor.chain().focus().deleteRange(range).toggleBulletList().run();
     },
@@ -99,7 +102,7 @@ export const suggestionItems = [
     title: "Numbered List",
     description: "Create a list with numbering.",
     searchTerms: ["ordered"],
-    icon: <ListNumbers size={18} />,
+    icon: <ListNumbers size={ICON_SIZE} className="text-muted-foreground" />,
     command: ({ editor, range }: CommandProps) => {
       editor.chain().focus().deleteRange(range).toggleOrderedList().run();
     },
@@ -108,7 +111,7 @@ export const suggestionItems = [
     title: "Quote",
     description: "Capture a quote.",
     searchTerms: ["blockquote"],
-    icon: <Quotes size={18} />,
+    icon: <Quotes size={ICON_SIZE} className="text-muted-foreground" />,
     command: ({ editor, range }: CommandProps) => {
       editor
         .chain()
@@ -123,7 +126,7 @@ export const suggestionItems = [
     title: "Code",
     description: "Capture a code snippet.",
     searchTerms: ["codeblock"],
-    icon: <Code size={18} />,
+    icon: <Code size={ICON_SIZE} className="text-muted-foreground" />,
     command: ({ editor, range }: CommandProps) => {
       editor.chain().focus().deleteRange(range).toggleCodeBlock().run();
     },
@@ -132,7 +135,7 @@ export const suggestionItems = [
     title: "Youtube",
     description: "Embed a Youtube video.",
     searchTerms: ["video", "youtube", "embed"],
-    icon: <YoutubeLogo size={18} />,
+    icon: <YoutubeLogo size={ICON_SIZE} className="text-muted-foreground" />,
     command: ({ editor, range }: CommandProps) => {
       const videoLink = prompt("Please enter Youtube Video Link");
       //From https://regexr.com/3dj5t
@@ -162,7 +165,7 @@ export const suggestionItems = [
     title: "Twitter",
     description: "Embed a Tweet.",
     searchTerms: ["twitter", "embed"],
-    icon: <TwitterLogo size={18} />,
+    icon: <TwitterLogo size={ICON_SIZE} className="text-muted-foreground" />,
     command: ({ editor, range }: CommandProps) => {
       const tweetLink = prompt("Please enter Twitter Link");
       const tweetRegex = new RegExp(
@@ -189,9 +192,12 @@ export const suggestionItems = [
   },
 ];
 
+// Configure the slash command with custom styling for smaller text
 export const slashCommand = Command.configure({
   suggestion: {
     items: () => suggestionItems,
     render: renderItems,
+    // Add a class to the command menu for smaller text
+    className: "text-sm",
   },
 });

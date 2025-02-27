@@ -244,8 +244,8 @@ const Editor = () => {
           <EditorContent editor={editor} />
 
           {/* Slash Command UI */}
-          <EditorCommand className="z-50 h-auto max-h-[330px] overflow-y-auto scrollbar-custom rounded-md border border-muted bg-background px-1 py-2 shadow-md transition-all">
-            <EditorCommandEmpty className="px-2 text-muted-foreground">
+          <EditorCommand className="z-50 h-auto max-h-[330px] overflow-y-auto scrollbar-custom rounded-md border border-muted bg-background px-1 py-2 shadow-md transition-all text-sm">
+            <EditorCommandEmpty className="px-2 text-muted-foreground text-xs">
               No results
             </EditorCommandEmpty>
             <EditorCommandList>
@@ -253,7 +253,7 @@ const Editor = () => {
                 <EditorCommandItem
                   value={item.title}
                   key={item.title}
-                  className="flex w-full items-center space-x-2 rounded-md px-2 py-1 text-left text-sm hover:bg-accent aria-selected:bg-accent"
+                  className="flex w-full items-center space-x-2 rounded-md px-2 py-1 text-left text-xs hover:bg-accent aria-selected:bg-accent"
                   onSelect={() => {
                     const range = useEditorStore.getState().range;
                     if (range && editor) {
@@ -261,11 +261,11 @@ const Editor = () => {
                     }
                   }}
                 >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-md border border-muted bg-background">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-md border border-muted bg-background">
                     {item.icon}
                   </div>
                   <div>
-                    <p className="font-medium">{item.title}</p>
+                    <p className="font-medium text-xs">{item.title}</p>
                     <p className="text-xs text-muted-foreground">
                       {item.description}
                     </p>
