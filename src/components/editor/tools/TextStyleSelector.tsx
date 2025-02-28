@@ -19,6 +19,7 @@ import {
   TextHTwo,
 } from "@phosphor-icons/react";
 import { Editor } from "@tiptap/react";
+import { useEffect, useState } from "react";
 
 // Text style options
 const TEXT_STYLES = [
@@ -35,17 +36,42 @@ interface TextStyleSelectorProps {
 }
 
 export function TextStyleSelector({ editor }: TextStyleSelectorProps) {
-  if (!editor) return null;
+  const [textStyle, setTextStyle] = useState("paragraph");
 
-  const getCurrentTextStyle = () => {
-    if (editor.isActive("paragraph")) return "paragraph";
-    if (editor.isActive("heading", { level: 1 })) return "heading-1";
-    if (editor.isActive("heading", { level: 2 })) return "heading-2";
-    if (editor.isActive("heading", { level: 3 })) return "heading-3";
-    if (editor.isActive("bulletList")) return "bullet-list";
-    if (editor.isActive("orderedList")) return "numbered-list";
-    return "paragraph";
-  };
+  // Update text style state when selection changes
+  useEffect(() => {
+    if (!editor) return;
+
+    // Function to determine the current text style
+    const determineTextStyle = () => {
+      if (editor.isActive("paragraph")) return "paragraph";
+      if (editor.isActive("heading", { level: 1 })) return "heading-1";
+      if (editor.isActive("heading", { level: 2 })) return "heading-2";
+      if (editor.isActive("heading", { level: 3 })) return "heading-3";
+      if (editor.isActive("bulletList")) return "bullet-list";
+      if (editor.isActive("orderedList")) return "numbered-list";
+      return "paragraph";
+    };
+
+    // Update state initially
+    setTextStyle(determineTextStyle());
+
+    // Add event listeners for selection changes
+    const updateTextStyle = () => {
+      setTextStyle(determineTextStyle());
+    };
+
+    editor.on("selectionUpdate", updateTextStyle);
+    editor.on("update", updateTextStyle);
+
+    return () => {
+      // Clean up event listeners
+      editor.off("selectionUpdate", updateTextStyle);
+      editor.off("update", updateTextStyle);
+    };
+  }, [editor]);
+
+  if (!editor) return null;
 
   const handleStyleChange = (value: string) => {
     switch (value) {
@@ -74,10 +100,7 @@ export function TextStyleSelector({ editor }: TextStyleSelectorProps) {
     <Tooltip>
       <TooltipTrigger asChild>
         <div>
-          <Select
-            value={getCurrentTextStyle()}
-            onValueChange={handleStyleChange}
-          >
+          <Select value={textStyle} onValueChange={handleStyleChange}>
             <SelectTrigger className="w-[150px] h-8 border-none shadow-none focus:ring-0 focus:ring-offset-0 pr-0">
               <SelectValue placeholder="Paragraph" />
             </SelectTrigger>

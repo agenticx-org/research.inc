@@ -36,6 +36,7 @@ interface FontSelectorProps {
 
 export function FontSelector({ editor }: FontSelectorProps) {
   const [fonts, setFonts] = useState(BASE_FONTS);
+  const [currentFont, setCurrentFont] = useState("default");
 
   useEffect(() => {
     // Check if user is on an Apple device
@@ -48,11 +49,29 @@ export function FontSelector({ editor }: FontSelectorProps) {
     }
   }, []);
 
-  if (!editor) return null;
+  // Update font state when selection changes
+  useEffect(() => {
+    if (!editor) return;
 
-  const getCurrentFont = () => {
-    return editor.getAttributes("textStyle").fontFamily || "default";
-  };
+    // Update state initially
+    setCurrentFont(editor.getAttributes("textStyle").fontFamily || "default");
+
+    // Add event listeners for selection changes
+    const updateFont = () => {
+      setCurrentFont(editor.getAttributes("textStyle").fontFamily || "default");
+    };
+
+    editor.on("selectionUpdate", updateFont);
+    editor.on("update", updateFont);
+
+    return () => {
+      // Clean up event listeners
+      editor.off("selectionUpdate", updateFont);
+      editor.off("update", updateFont);
+    };
+  }, [editor]);
+
+  if (!editor) return null;
 
   const handleFontChange = (value: string) => {
     editor
@@ -66,7 +85,7 @@ export function FontSelector({ editor }: FontSelectorProps) {
     <Tooltip>
       <TooltipTrigger asChild>
         <div>
-          <Select value={getCurrentFont()} onValueChange={handleFontChange}>
+          <Select value={currentFont} onValueChange={handleFontChange}>
             <SelectTrigger className="w-[150px] h-8 border-none shadow-none focus:ring-0 focus:ring-offset-0 pr-0">
               <div className="flex items-center gap-1">
                 <TextT size={14} />

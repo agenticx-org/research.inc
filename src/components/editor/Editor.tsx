@@ -17,7 +17,7 @@ import Underline from "@tiptap/extension-underline";
 import Youtube from "@tiptap/extension-youtube";
 import { useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import tunnel from "tunnel-rat";
 import {
   EditorCommand,
@@ -26,6 +26,7 @@ import {
   EditorCommandList,
   EditorCommandTunnelContext,
 } from "./components/EditorCommand";
+import { WordCountDisplay } from "./components/WordCountDisplay";
 import { EditorContent } from "./EditorContent";
 import { EditorToolbar } from "./EditorToolbar";
 import { SelectionHighlight } from "./extensions/SelectionHighlight";
@@ -38,6 +39,8 @@ const commandTunnel = tunnel();
 
 const Editor = () => {
   const { selectedTextItems, removeSelectedText } = useChatStore();
+  const [wordCount, setWordCount] = useState(0);
+  const [charCount, setCharCount] = useState(0);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -119,6 +122,28 @@ const Editor = () => {
       }
     },
   });
+
+  // Update word and character counts when editor content changes
+  useEffect(() => {
+    if (!editor) return;
+
+    // Function to update counts
+    const updateCounts = () => {
+      setWordCount(editor.storage.characterCount.words());
+      setCharCount(editor.storage.characterCount.characters());
+    };
+
+    // Update counts initially
+    updateCounts();
+
+    // Add event listeners for content changes
+    editor.on("update", updateCounts);
+
+    return () => {
+      // Clean up event listeners
+      editor.off("update", updateCounts);
+    };
+  }, [editor]);
 
   // Sync selected text items with editor highlights
   useEffect(() => {
@@ -242,10 +267,6 @@ const Editor = () => {
     };
   }, [editor, removeSelectedText]);
 
-  // Get word and character count
-  const wordCount = editor?.storage.characterCount?.words() || 0;
-  const charCount = editor?.storage.characterCount?.characters() || 0;
-
   return (
     <EditorCommandTunnelContext.Provider value={commandTunnel}>
       <div className="relative h-full flex flex-col">
@@ -287,12 +308,8 @@ const Editor = () => {
           </EditorCommand>
         </div>
 
-        {/* Word and character count display - sticky at bottom with inverted colors */}
-        <div className="sticky bottom-2 left-0 right-0 flex justify-center z-10">
-          <div className="text-xs text-white bg-black opacity-80 px-2 py-1 rounded-md shadow-sm">
-            {wordCount} words | {charCount} characters
-          </div>
-        </div>
+        {/* Replace the word count display with the new component */}
+        <WordCountDisplay wordCount={wordCount} charCount={charCount} />
       </div>
     </EditorCommandTunnelContext.Provider>
   );

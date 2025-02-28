@@ -11,6 +11,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Editor } from "@tiptap/react";
+import { useEffect, useState } from "react";
 
 // Font size options
 const FONT_SIZES = [
@@ -29,11 +30,31 @@ interface FontSizeSelectorProps {
 }
 
 export function FontSizeSelector({ editor }: FontSizeSelectorProps) {
-  if (!editor) return null;
+  const [fontSize, setFontSize] = useState("16px");
 
-  const getCurrentFontSize = () => {
-    return editor.getAttributes("textStyle").fontSize || "16px";
-  };
+  // Update font size state when selection changes
+  useEffect(() => {
+    if (!editor) return;
+
+    // Update state initially
+    setFontSize(editor.getAttributes("textStyle").fontSize || "16px");
+
+    // Add event listeners for selection changes
+    const updateFontSize = () => {
+      setFontSize(editor.getAttributes("textStyle").fontSize || "16px");
+    };
+
+    editor.on("selectionUpdate", updateFontSize);
+    editor.on("update", updateFontSize);
+
+    return () => {
+      // Clean up event listeners
+      editor.off("selectionUpdate", updateFontSize);
+      editor.off("update", updateFontSize);
+    };
+  }, [editor]);
+
+  if (!editor) return null;
 
   const handleFontSizeChange = (value: string) => {
     editor.chain().focus().setFontSize(value).run();
@@ -43,10 +64,7 @@ export function FontSizeSelector({ editor }: FontSizeSelectorProps) {
     <Tooltip>
       <TooltipTrigger asChild>
         <div>
-          <Select
-            value={getCurrentFontSize()}
-            onValueChange={handleFontSizeChange}
-          >
+          <Select value={fontSize} onValueChange={handleFontSizeChange}>
             <SelectTrigger className="w-[90px] h-8 border-none shadow-none focus:ring-0 focus:ring-offset-0 pr-0">
               <div className="flex items-center gap-1">
                 <SelectValue placeholder="16px" />
