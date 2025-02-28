@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/tooltip";
 import { TextAa } from "@phosphor-icons/react";
 import { Editor } from "@tiptap/react";
+import { useEffect, useState } from "react";
 
 // Text color options
 const TEXT_COLORS = [
@@ -35,15 +36,35 @@ interface ColorSelectorsProps {
 }
 
 export function ColorSelectors({ editor }: ColorSelectorsProps) {
+  // Add state for current colors
+  const [textColor, setTextColor] = useState("default");
+  const [highlightColor, setHighlightColor] = useState("none");
+
+  // Update states when selection changes
+  useEffect(() => {
+    if (!editor) return;
+
+    // Update states initially
+    setTextColor(editor.getAttributes("textStyle").color || "default");
+    setHighlightColor(editor.getAttributes("highlight").color || "none");
+
+    // Add event listeners for selection changes
+    const updateStates = () => {
+      setTextColor(editor.getAttributes("textStyle").color || "default");
+      setHighlightColor(editor.getAttributes("highlight").color || "none");
+    };
+
+    editor.on("selectionUpdate", updateStates);
+    editor.on("update", updateStates);
+
+    return () => {
+      // Clean up event listeners
+      editor.off("selectionUpdate", updateStates);
+      editor.off("update", updateStates);
+    };
+  }, [editor]);
+
   if (!editor) return null;
-
-  const getCurrentTextColor = () => {
-    return editor.getAttributes("textStyle").color || "default";
-  };
-
-  const getCurrentHighlightColor = () => {
-    return editor.getAttributes("highlight").color || "none";
-  };
 
   const handleTextColorChange = (value: string) => {
     if (value === "default") {
@@ -66,16 +87,13 @@ export function ColorSelectors({ editor }: ColorSelectorsProps) {
       <Tooltip>
         <TooltipTrigger asChild>
           <div>
-            <Select
-              value={getCurrentTextColor()}
-              onValueChange={handleTextColorChange}
-            >
+            <Select value={textColor} onValueChange={handleTextColorChange}>
               <SelectTrigger className="w-8 h-8 border-none shadow-none focus:ring-0 focus:ring-offset-0 p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 rounded">
                 <div
                   className="w-full h-full rounded-full border border-gray-200 flex-shrink-0"
                   style={{
                     backgroundColor:
-                      editor.getAttributes("textStyle").color || "currentColor",
+                      textColor !== "default" ? textColor : "currentColor",
                   }}
                 />
               </SelectTrigger>
@@ -107,7 +125,7 @@ export function ColorSelectors({ editor }: ColorSelectorsProps) {
         <TooltipTrigger asChild>
           <div>
             <Select
-              value={getCurrentHighlightColor()}
+              value={highlightColor}
               onValueChange={handleHighlightColorChange}
             >
               <SelectTrigger className="w-8 h-8 border-none shadow-none focus:ring-0 focus:ring-offset-0 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
@@ -115,7 +133,7 @@ export function ColorSelectors({ editor }: ColorSelectorsProps) {
                   className="p-1 rounded"
                   style={{
                     backgroundColor:
-                      editor.getAttributes("highlight").color || "white",
+                      highlightColor !== "none" ? highlightColor : "white",
                   }}
                 >
                   <TextAa size={16} />

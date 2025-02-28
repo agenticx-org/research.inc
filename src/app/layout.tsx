@@ -24,13 +24,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <head>
+        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
         <script
           crossOrigin="anonymous"
           src="//unpkg.com/react-scan/dist/auto.global.js"
         />
-        {/* rest of your scripts go under */}
       </head>
-      <body className={"antialiased"}>{children}</body>
+      <body className="antialiased">{children}</body>
     </html>
   );
 }

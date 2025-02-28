@@ -3,6 +3,7 @@
 import Waves from "@/components/animation/Waves";
 import { Button } from "@/components/ui/button";
 import { Shuffle } from "@phosphor-icons/react";
+import { motion } from "framer-motion";
 import Image from "next/image";
 import { useState } from "react";
 
@@ -23,7 +24,13 @@ const LoginPage = () => {
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
       <div className="relative hidden lg:block bg-black">
-        <Waves lineColor={lineColor} backgroundColor="#000" />
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1.2, ease: "easeInOut" }}
+        >
+          <Waves lineColor={lineColor} backgroundColor="#000" />
+        </motion.div>
         <Button
           variant="ghost"
           size="icon"

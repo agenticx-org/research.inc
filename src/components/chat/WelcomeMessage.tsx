@@ -2,6 +2,7 @@
 
 import { useChatStore } from "@/store/chat-store";
 import { ArrowUpRight, ChatCircle, Infinity } from "@phosphor-icons/react";
+import { motion } from "framer-motion";
 import Aurora from "../animation/Aurora";
 import GradientText from "../animation/GradientText";
 
@@ -19,14 +20,19 @@ export function WelcomeMessage({ isAgent }: WelcomeMessageProps) {
 
   return (
     <div className="relative h-full w-full min-h-[500px]">
-      <div className="h-36 relative z-10">
+      <motion.div
+        className="h-36 relative z-10"
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+      >
         <Aurora
           colorStops={["#1a1a1a", "#2d3436", "#636e72"]}
           blend={0.5}
           amplitude={1.0}
           speed={0.5}
         />
-      </div>
+      </motion.div>
       <div className="absolute bottom-0 left-0 right-0 p-4 z-[1]">
         <div className="flex flex-col transition-all duration-200">
           <div className="flex flex-col">
