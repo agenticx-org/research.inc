@@ -29,6 +29,46 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
     useChatStore();
   const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
 
+  // Add state for each formatting option
+  const [isBold, setIsBold] = useState(false);
+  const [isItalic, setIsItalic] = useState(false);
+  const [isStrike, setIsStrike] = useState(false);
+  const [isUnderline, setIsUnderline] = useState(false);
+  const [isCode, setIsCode] = useState(false);
+  const [isLink, setIsLink] = useState(false);
+
+  // Update formatting states when selection changes
+  useEffect(() => {
+    if (!editor) return;
+
+    // Update states initially
+    setIsBold(editor.isActive("bold"));
+    setIsItalic(editor.isActive("italic"));
+    setIsStrike(editor.isActive("strike"));
+    setIsUnderline(editor.isActive("underline"));
+    setIsCode(editor.isActive("code"));
+    setIsLink(editor.isActive("link"));
+
+    // Add event listeners for selection changes
+    const updateStates = () => {
+      setIsBold(editor.isActive("bold"));
+      setIsItalic(editor.isActive("italic"));
+      setIsStrike(editor.isActive("strike"));
+      setIsUnderline(editor.isActive("underline"));
+      setIsCode(editor.isActive("code"));
+      setIsLink(editor.isActive("link"));
+    };
+
+    editor.on("selectionUpdate", updateStates);
+    editor.on("update", updateStates);
+
+    return () => {
+      // Clean up event listeners
+      editor.off("selectionUpdate", updateStates);
+      editor.off("update", updateStates);
+    };
+  }, [editor]);
+
   // Add keyboard shortcut for Command+L to add selected text to chat
   useEffect(() => {
     if (!editor) return;
@@ -308,7 +348,7 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
                 onClick={() => editor.chain().focus().toggleBold().run()}
                 className={cn([
                   "p-1 rounded transition-colors duration-200",
-                  editor.isActive("bold")
+                  isBold
                     ? "bg-black text-white dark:bg-white dark:text-black"
                     : "hover:bg-gray-100 dark:hover:bg-gray-700",
                 ])}
@@ -326,7 +366,7 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
                 onClick={() => editor.chain().focus().toggleItalic().run()}
                 className={cn([
                   "p-1 rounded transition-colors duration-200",
-                  editor.isActive("italic")
+                  isItalic
                     ? "bg-black text-white dark:bg-white dark:text-black"
                     : "hover:bg-gray-100 dark:hover:bg-gray-700",
                 ])}
@@ -344,7 +384,7 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
                 onClick={() => editor.chain().focus().toggleUnderline().run()}
                 className={cn([
                   "p-1 rounded transition-colors duration-200",
-                  editor.isActive("underline")
+                  isUnderline
                     ? "bg-black text-white dark:bg-white dark:text-black"
                     : "hover:bg-gray-100 dark:hover:bg-gray-700",
                 ])}
@@ -362,7 +402,7 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
                 onClick={() => editor.chain().focus().toggleStrike().run()}
                 className={cn([
                   "p-1 rounded transition-colors duration-200",
-                  editor.isActive("strike")
+                  isStrike
                     ? "bg-black text-white dark:bg-white dark:text-black"
                     : "hover:bg-gray-100 dark:hover:bg-gray-700",
                 ])}
@@ -380,7 +420,7 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
                 onClick={() => editor.chain().focus().toggleCode().run()}
                 className={cn([
                   "p-1 rounded transition-colors duration-200",
-                  editor.isActive("code")
+                  isCode
                     ? "bg-black text-white dark:bg-white dark:text-black"
                     : "hover:bg-gray-100 dark:hover:bg-gray-700",
                 ])}
@@ -398,7 +438,7 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
                 onClick={setLink}
                 className={cn([
                   "p-1 rounded transition-colors duration-200",
-                  editor.isActive("link")
+                  isLink
                     ? "bg-black text-white dark:bg-white dark:text-black"
                     : "hover:bg-gray-100 dark:hover:bg-gray-700",
                 ])}
