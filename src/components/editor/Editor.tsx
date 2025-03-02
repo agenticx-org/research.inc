@@ -18,6 +18,7 @@ import Youtube from "@tiptap/extension-youtube";
 import { useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useEffect, useState } from "react";
+import GlobalDragHandle from "tiptap-extension-global-drag-handle";
 import tunnel from "tunnel-rat";
 import {
   EditorCommand,
@@ -55,6 +56,7 @@ const Editor = () => {
       CharacterCount,
       SelectionHighlight,
       slashCommand,
+      GlobalDragHandle,
       Code.configure({
         HTMLAttributes: {
           class: "font-mono bg-gray-100 rounded px-1.5 py-0.5",

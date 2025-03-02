@@ -32,15 +32,7 @@ export function TextFormatButtons({ editor }: TextFormatButtonsProps) {
   useEffect(() => {
     if (!editor) return;
 
-    // Update states initially
-    setIsBold(editor.isActive("bold"));
-    setIsItalic(editor.isActive("italic"));
-    setIsStrike(editor.isActive("strike"));
-    setIsUnderline(editor.isActive("underline"));
-    setIsCode(editor.isActive("code"));
-    setIsLink(editor.isActive("link"));
-
-    // Add event listeners for selection changes
+    // Function to update all formatting states
     const updateStates = () => {
       setIsBold(editor.isActive("bold"));
       setIsItalic(editor.isActive("italic"));
@@ -50,13 +42,23 @@ export function TextFormatButtons({ editor }: TextFormatButtonsProps) {
       setIsLink(editor.isActive("link"));
     };
 
+    // Initial update
+    updateStates();
+
+    // Add event listeners for all relevant editor changes
     editor.on("selectionUpdate", updateStates);
     editor.on("update", updateStates);
+    editor.on("transaction", updateStates);
+    editor.on("focus", updateStates);
+    editor.on("blur", updateStates);
 
     return () => {
       // Clean up event listeners
       editor.off("selectionUpdate", updateStates);
       editor.off("update", updateStates);
+      editor.off("transaction", updateStates);
+      editor.off("focus", updateStates);
+      editor.off("blur", updateStates);
     };
   }, [editor]);
 
