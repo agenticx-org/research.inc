@@ -9,7 +9,7 @@ export function EditorContent({ editor }: EditorContentProps) {
 
   return (
     <div
-      className="max-w-4xl mx-auto px-6 pt-[70px]"
+      className="max-w-[calc(56rem+16px)] mx-auto px-6 pt-[70px]"
       onClick={() => editor.chain().focus().run()}
     >
       <TiptapEditorContent editor={editor} className="min-h-[500px]" />
