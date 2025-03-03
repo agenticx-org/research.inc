@@ -16,7 +16,7 @@ function getRandomColor() {
 }
 
 const LoginPage = () => {
-  const [lineColor, setLineColor] = useState("rgba(153, 69, 0, 1)");
+  const [lineColor, setLineColor] = useState("rgba(265, 250, 247, 1)");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleRandomizeColor = () => {
@@ -55,11 +55,11 @@ const LoginPage = () => {
           <Shuffle className="size-4" weight="bold" />
         </Button>
       </div>
-      <div className="flex flex-col gap-4 p-6 md:p-10">
+      <div className="flex flex-col gap-4 p-6 md:p-10 bg-[#0A0A0A] text-white border-l-[#2A2A2A] border-l">
         <div className="flex flex-1 items-center justify-center flex-col">
           <div className="w-full max-w-xs items-center justify-center gap-2 flex font-medium text-xl">
             <Image
-              src={"/research.svg"}
+              src={"/research-white.svg"}
               width={30}
               height={30}
               alt="Research.inc Logo"
@@ -67,8 +67,8 @@ const LoginPage = () => {
             Research.inc
           </div>
           <Button
-            variant="outline"
-            className="w-full max-w-xs mt-8 flex items-center gap-3 h-11"
+            variant="default"
+            className="w-full max-w-xs mt-5 flex items-center gap-3 h-11 bg-zinc-900 hover:bg-zinc-800 text-white border border-zinc-700"
             onClick={handleGoogleSignIn}
             disabled={isLoading}
           >
