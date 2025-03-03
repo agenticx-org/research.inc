@@ -196,7 +196,7 @@ p .selection-highlight {
 }
 
 .ProseMirror {
-  @apply px-8 sm:px-6;
+  @apply px-2 sm:px-6 pt-12;
 }
 
 .ProseMirror .is-editor-empty:first-child::before {

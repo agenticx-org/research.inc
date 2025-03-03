@@ -2,7 +2,8 @@
 
 import Waves from "@/components/animation/Waves";
 import { Button } from "@/components/ui/button";
-import { Shuffle } from "@phosphor-icons/react";
+import { authClient } from "@/lib/auth-client";
+import { Shuffle, SpinnerGap } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { useState } from "react";
@@ -16,9 +17,23 @@ function getRandomColor() {
 
 const LoginPage = () => {
   const [lineColor, setLineColor] = useState("rgba(153, 69, 0, 1)");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleRandomizeColor = () => {
     setLineColor(getRandomColor());
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setIsLoading(true);
+      await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/",
+      });
+    } catch (error) {
+      console.error("Google sign-in failed:", error);
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -54,15 +69,20 @@ const LoginPage = () => {
           <Button
             variant="outline"
             className="w-full max-w-xs mt-8 flex items-center gap-3 h-11"
-            onClick={() => {}}
+            onClick={handleGoogleSignIn}
+            disabled={isLoading}
           >
-            <Image
-              src="/google-g.svg"
-              alt="Google Logo"
-              width={18}
-              height={18}
-            />
-            Continue with Google
+            {isLoading ? (
+              <SpinnerGap className="size-5 animate-spin" weight="bold" />
+            ) : (
+              <Image
+                src="/google-g.svg"
+                alt="Google Logo"
+                width={18}
+                height={18}
+              />
+            )}
+            {isLoading ? "Signing in..." : "Continue with Google"}
           </Button>
         </div>
       </div>
