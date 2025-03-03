@@ -278,7 +278,7 @@ const Editor = () => {
           <EditorContent editor={editor} />
 
           {/* Slash Command UI */}
-          <EditorCommand className="z-50 h-auto max-h-[330px] overflow-y-auto scrollbar-custom rounded-md border border-muted bg-background px-1 py-2 shadow-md transition-all text-sm">
+          <EditorCommand className="z-50 h-auto max-h-[330px] overflow-y-auto scrollbar-custom rounded-md border bg-background px-1 py-2 shadow-md transition-all text-sm">
             <EditorCommandEmpty className="px-2 text-muted-foreground text-xs">
               No results
             </EditorCommandEmpty>
