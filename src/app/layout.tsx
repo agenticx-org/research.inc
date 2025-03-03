@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-sync-scripts */
+import { Toaster } from "@/components/ui/sonner";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -32,7 +33,10 @@ export default function RootLayout({
           />
         )}
       </head>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        {children}
+        <Toaster />
+      </body>
     </html>
   );
 }

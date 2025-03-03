@@ -263,7 +263,7 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
         duration: 100,
         animation: "shift-away",
       }}
-      className="flex overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md min-w-[365px]"
+      className="flex overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md min-w-[290px]"
     >
       <TooltipProvider delayDuration={0}>
         <div className="flex items-center gap-1 p-1">
@@ -288,7 +288,7 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
           </div>
 
           {/* Edit button - new */}
-          <button
+          {/* <button
             onClick={handleEdit}
             className="px-2 py-1 rounded text-xs font-medium transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700"
           >
@@ -296,7 +296,7 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
             <span className="ml-1 text-[10px] text-gray-500 font-normal">
               ⌘K
             </span>
-          </button>
+          </button> */}
 
           {/* Separator - moved after both buttons */}
           <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-1" />
