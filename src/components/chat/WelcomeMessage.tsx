@@ -3,6 +3,7 @@
 import { useChatStore } from "@/store/chat-store";
 import { ArrowUpRight, ChatCircle, Infinity } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
+import { useState } from "react";
 import Aurora from "../animation/Aurora";
 import GradientText from "../animation/GradientText";
 
@@ -12,22 +13,43 @@ interface WelcomeMessageProps {
 
 export function WelcomeMessage({ isAgent }: WelcomeMessageProps) {
   const { setMessage, handleSubmit } = useChatStore();
+  const [colorStops, setColorStops] = useState<string[]>([
+    "#1a1a1a",
+    "#2d3436",
+    "#636e72",
+  ]);
 
   const handleExampleClick = (text: string) => {
     setMessage(text);
     handleSubmit();
   };
 
+  const generateRandomColor = () => {
+    return `#${Math.floor(Math.random() * 16777215)
+      .toString(16)
+      .padStart(6, "0")}`;
+  };
+
+  const handleAuroraClick = () => {
+    const newColors = [
+      generateRandomColor(),
+      generateRandomColor(),
+      generateRandomColor(),
+    ];
+    setColorStops(newColors);
+  };
+
   return (
     <div className="relative h-full w-full min-h-[500px]">
       <motion.div
-        className="h-36 relative z-10"
+        className="h-36 relative z-10 cursor-pointer"
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
+        onClick={handleAuroraClick}
       >
         <Aurora
-          colorStops={["#1a1a1a", "#2d3436", "#636e72"]}
+          colorStops={colorStops}
           blend={0.5}
           amplitude={1.0}
           speed={0.5}
@@ -37,8 +59,8 @@ export function WelcomeMessage({ isAgent }: WelcomeMessageProps) {
         <div className="flex flex-col transition-all duration-200">
           <div className="flex flex-col">
             <GradientText
-              colors={["#1a1a1a", "#2d3436", "#636e72", "#2d3436", "#1a1a1a"]}
-              animationSpeed={3}
+              colors={colorStops.concat(colorStops[1], colorStops[0])}
+              animationSpeed={5}
               showBorder={false}
               className="text-[35px] mx-0"
             >
