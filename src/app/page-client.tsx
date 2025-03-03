@@ -4,18 +4,27 @@ import Chat from "@/components/chat/Chat";
 import Editor from "@/components/editor/Editor";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { Skeleton } from "@/components/ui/skeleton";
 import { authClient } from "@/lib/auth-client";
-import { User } from "@phosphor-icons/react";
+import { SignOut, User } from "@phosphor-icons/react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function DashboardView() {
   const [isRightPanelVisible, setIsRightPanelVisible] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     const handleToggleChatPanel = (
@@ -44,6 +53,15 @@ export default function DashboardView() {
   const { data: session, isPending } = authClient.useSession();
   const isLoading = isPending;
 
+  const handleSignOut = async () => {
+    try {
+      await authClient.signOut();
+      router.push("/"); // Redirect to home page after sign out
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
+
   return (
     <div className="min-h-screen min-w-screen">
       <div className="h-screen w-screen overflow-y-hidden">
@@ -62,17 +80,44 @@ export default function DashboardView() {
               {isLoading ? (
                 <Skeleton className="w-8 h-8 rounded-full" />
               ) : (
-                <Avatar className="w-8 h-8">
-                  {session?.user?.image ? (
-                    <AvatarImage
-                      src={session.user.image}
-                      alt={session.user.name || "User profile"}
-                    />
-                  ) : null}
-                  <AvatarFallback className="bg-white border">
-                    <User size={14} weight="bold" aria-hidden="true" />
-                  </AvatarFallback>
-                </Avatar>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Avatar className="w-8 h-8 cursor-pointer">
+                      {session?.user?.image ? (
+                        <AvatarImage
+                          src={session.user.image}
+                          alt={session.user.name || "User profile"}
+                        />
+                      ) : null}
+                      <AvatarFallback className="bg-white border">
+                        <User size={14} weight="bold" aria-hidden="true" />
+                      </AvatarFallback>
+                    </Avatar>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="end"
+                    className="w-56 rounded-lg border shadow-md"
+                  >
+                    <div className="px-4 py-3">
+                      <p className="text-sm font-medium">
+                        {session?.user?.name || "User"}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {session?.user?.email || ""}
+                      </p>
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={handleSignOut}
+                      className="focus:bg-accent cursor-pointer py-2"
+                    >
+                      <div className="flex items-center px-2">
+                        <SignOut className="mr-2 h-4 w-4" />
+                        <span>Logout</span>
+                      </div>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
             </div>
           </div>
