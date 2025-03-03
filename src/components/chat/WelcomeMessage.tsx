@@ -1,8 +1,9 @@
 "use client";
 
+import { authClient } from "@/lib/auth-client";
 import { useChatStore } from "@/store/chat-store";
 import { ArrowUpRight, ChatCircle, Infinity } from "@phosphor-icons/react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import Aurora from "../animation/Aurora";
 import GradientText from "../animation/GradientText";
@@ -39,6 +40,8 @@ export function WelcomeMessage({ isAgent }: WelcomeMessageProps) {
     setColorStops(newColors);
   };
 
+  const { data, isPending } = authClient.useSession();
+
   return (
     <div className="relative h-full w-full min-h-[500px]">
       <motion.div
@@ -58,14 +61,25 @@ export function WelcomeMessage({ isAgent }: WelcomeMessageProps) {
       <div className="absolute bottom-0 left-0 right-0 p-4 z-[1]">
         <div className="flex flex-col transition-all duration-200">
           <div className="flex flex-col">
-            <GradientText
-              colors={colorStops.concat(colorStops[1], colorStops[0])}
-              animationSpeed={5}
-              showBorder={false}
-              className="text-[35px] mx-0"
-            >
-              Hello Nick
-            </GradientText>
+            <AnimatePresence>
+              {!isPending && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                >
+                  <GradientText
+                    colors={colorStops.concat(colorStops[1], colorStops[0])}
+                    animationSpeed={5}
+                    showBorder={false}
+                    className="text-[35px] mx-0"
+                  >
+                    Hello {data?.user.name?.split(" ")[0]}
+                  </GradientText>
+                </motion.div>
+              )}
+            </AnimatePresence>
             <div className="text-[28px] text-default-900 leading-tight">
               What are we working on today?
             </div>
