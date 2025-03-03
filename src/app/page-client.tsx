@@ -82,7 +82,7 @@ export default function DashboardView() {
               ) : (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Avatar className="w-8 h-8 cursor-pointer">
+                    <Avatar className="w-8 h-8 cursor-pointer select-none">
                       {session?.user?.image ? (
                         <AvatarImage
                           src={session.user.image}
