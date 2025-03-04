@@ -16,7 +16,7 @@ function getRandomColor() {
 }
 
 const LoginPage = () => {
-  const [lineColor, setLineColor] = useState("rgba(265, 250, 247, 1)");
+  const [lineColor, setLineColor] = useState("rgba(265, 250, 247, 0.5)");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleRandomizeColor = () => {

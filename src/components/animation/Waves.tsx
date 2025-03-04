@@ -170,6 +170,7 @@ export default function Waves({
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
+  const dprRef = useRef<number>(1);
   const boundingRef = useRef<BoundingElement>({
     width: 0,
     height: 0,
@@ -198,11 +199,27 @@ export default function Waves({
     if (!canvas || !container) return;
     ctxRef.current = canvas.getContext("2d");
 
+    // Get device pixel ratio
+    dprRef.current = window.devicePixelRatio || 1;
+
     function setSize() {
       if (!container || !canvas) return;
       boundingRef.current = container.getBoundingClientRect();
-      canvas.width = boundingRef.current.width;
-      canvas.height = boundingRef.current.height;
+
+      // Set display size (css pixels)
+      canvas.style.width = `${boundingRef.current.width}px`;
+      canvas.style.height = `${boundingRef.current.height}px`;
+
+      // Set actual size in memory (scaled for device pixel ratio)
+      canvas.width = Math.floor(boundingRef.current.width * dprRef.current);
+      canvas.height = Math.floor(boundingRef.current.height * dprRef.current);
+
+      // Scale all drawing operations by the dpr
+      const ctx = ctxRef.current;
+      if (ctx) {
+        ctx.scale(dprRef.current, dprRef.current);
+        ctx.lineWidth = 1; // Keep line width consistent
+      }
     }
 
     function setLines() {
@@ -284,9 +301,17 @@ export default function Waves({
       const { width, height } = boundingRef.current;
       const ctx = ctxRef.current;
       if (!ctx) return;
+
+      // Clear with device pixel ratio in mind
       ctx.clearRect(0, 0, width, height);
+
       ctx.beginPath();
       ctx.strokeStyle = lineColor;
+
+      // Ensure crisp lines
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+
       linesRef.current.forEach((points) => {
         let p1 = moved(points[0], false);
         ctx.moveTo(p1.x, p1.y);
@@ -330,6 +355,12 @@ export default function Waves({
     }
 
     function onResize() {
+      // Reset context scale before resizing
+      const ctx = ctxRef.current;
+      if (ctx) {
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+      }
+
       setSize();
       setLines();
     }
