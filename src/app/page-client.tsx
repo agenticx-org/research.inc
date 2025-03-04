@@ -55,8 +55,13 @@ export default function DashboardView() {
 
   const handleSignOut = async () => {
     try {
-      await authClient.signOut();
-      router.push("/"); // Redirect to home page after sign out
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess() {
+            router.push("/");
+          },
+        },
+      });
     } catch (error) {
       console.error("Error signing out:", error);
     }
