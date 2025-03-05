@@ -58,7 +58,7 @@ export default function DashboardView() {
       await authClient.signOut({
         fetchOptions: {
           onSuccess() {
-            router.push("/");
+            router.push("/login");
           },
         },
       });

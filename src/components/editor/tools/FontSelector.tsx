@@ -87,13 +87,13 @@ export function FontSelector({ editor }: FontSelectorProps) {
         <div>
           <Select value={currentFont} onValueChange={handleFontChange}>
             <SelectTrigger className="w-[150px] h-8 border-none shadow-none focus:ring-0 focus:ring-offset-0 pr-0">
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 text-sm">
                 <TextT size={14} />
                 <SelectValue placeholder="Font family" />
               </div>
             </SelectTrigger>
             <SelectContent className="p-1 rounded-xl shadow-lg">
-              <SelectItem value="default" className="py-2">
+              <SelectItem value="default" className="py-2 text-xs">
                 Geist Sans
               </SelectItem>
               {fonts.map((font) => (
