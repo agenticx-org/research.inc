@@ -3,7 +3,13 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import DashboardView from "./page-client";
 
-export default async function Dashboard() {
+interface DocumentPageProps {
+  params: {
+    id: string;
+  };
+}
+
+export default async function DocumentPage({ params }: DocumentPageProps) {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -12,5 +18,5 @@ export default async function Dashboard() {
     throw redirect("/login");
   }
 
-  return <DashboardView />;
+  return <DashboardView documentId={params.id} />;
 }

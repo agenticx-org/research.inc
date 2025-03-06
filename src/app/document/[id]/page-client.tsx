@@ -22,9 +22,18 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-export default function DashboardView() {
+interface DashboardViewProps {
+  documentId: string;
+}
+
+export default function DashboardView({ documentId }: DashboardViewProps) {
   const [isRightPanelVisible, setIsRightPanelVisible] = useState(true);
   const router = useRouter();
+
+  // Log the document ID for debugging
+  useEffect(() => {
+    console.log("Document ID:", documentId);
+  }, [documentId]);
 
   useEffect(() => {
     const handleToggleChatPanel = (
