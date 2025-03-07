@@ -19,7 +19,10 @@ import { authClient } from "@/lib/auth-client";
 import { SignOut, User } from "@phosphor-icons/react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
+
+// Memoize the CompanyDataTable to prevent unnecessary rerenders
+const MemoizedCompanyDataTable = memo(CompanyDataTable);
 
 export default function TableView() {
   const [isRightPanelVisible, setIsRightPanelVisible] = useState(true);
@@ -141,22 +144,28 @@ export default function TableView() {
           </div>
         </div>
         <div className="flex w-full h-full">
-          <ResizablePanelGroup direction="horizontal">
+          <ResizablePanelGroup
+            direction="horizontal"
+            onLayout={() => {}}
+            className="transition-none"
+          >
             <ResizablePanel
               defaultSize={isRightPanelVisible ? 70 : 100}
               minSize={30}
+              style={{ transition: "none" }}
             >
               <div className="w-full h-[calc(100vh-48px)] mt-[48px] overflow-hidden">
-                <CompanyDataTable />
+                <MemoizedCompanyDataTable />
               </div>
             </ResizablePanel>
             {isRightPanelVisible && (
               <>
-                <ResizableHandle />
+                <ResizableHandle withHandle />
                 <ResizablePanel
                   defaultSize={30}
                   minSize={30}
                   className="hidden md:block"
+                  style={{ transition: "none" }}
                 >
                   <div className="w-full h-[calc(100vh-48px)] mt-[48px] overflow-y-scroll no-scrollbar">
                     <div className="flex flex-col items-center justify-center h-full">
