@@ -1,5 +1,6 @@
 "use client";
 
+import { CompanyDataTable } from "@/components/data-table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -145,10 +146,8 @@ export default function TableView() {
               defaultSize={isRightPanelVisible ? 70 : 100}
               minSize={30}
             >
-              <div className="w-full transition-all duration-200 h-[calc(100vh-48px)] mt-[48px] overflow-y-scroll no-scrollbar relative">
-                <div className="flex items-center justify-center h-full">
-                  <h2 className="text-2xl font-semibold">Panel 1</h2>
-                </div>
+              <div className="w-full h-[calc(100vh-48px)] mt-[48px] overflow-hidden">
+                <CompanyDataTable />
               </div>
             </ResizablePanel>
             {isRightPanelVisible && (
