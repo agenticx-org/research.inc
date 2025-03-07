@@ -1,6 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -10,6 +16,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CaretDown,
+  Database,
+  DotsThreeVertical,
+  FileArrowDown,
+  FileArrowUp,
+  FunnelSimple,
+  Gear,
+  ListNumbers,
+  MagnifyingGlass,
+  Plus,
+} from "@phosphor-icons/react";
 import {
   ColumnDef,
   flexRender,
@@ -46,12 +66,15 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="w-full rounded-md border overflow-auto">
-      <Table className="w-full">
+      <Table className="w-full border-collapse">
         <TableHeader className="bg-muted/50 sticky top-0 z-10">
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
-                <TableHead key={header.id} className="font-medium h-12">
+                <TableHead
+                  key={header.id}
+                  className="font-medium h-12 border-r border-border last:border-r-0"
+                >
                   {header.isPlaceholder
                     ? null
                     : flexRender(
@@ -72,7 +95,10 @@ export function DataTable<TData, TValue>({
                 className="h-14"
               >
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id} className="h-14">
+                  <TableCell
+                    key={cell.id}
+                    className="h-14 border-r border-border last:border-r-0"
+                  >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}
@@ -269,23 +295,59 @@ export function CompanyDataTable() {
     <div className="flex flex-col h-full">
       {/* Sticky Header */}
       <div className="sticky top-0 bg-background z-20 py-4 border-b">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm">
-              Add Data
+        <div className="flex items-center justify-between px-4">
+          <div className="flex items-center gap-2">
+            <Button variant="default" size="sm" className="h-9 gap-1.5 px-3">
+              <Plus className="h-4 w-4" weight="bold" />
+              <span>Add Data</span>
             </Button>
-            <Button variant="outline" size="sm">
-              Import CSV
+
+            <Button variant="outline" size="sm" className="h-9 gap-1.5 px-3">
+              <FileArrowUp className="h-4 w-4" />
+              <span>Import CSV</span>
             </Button>
-            <Button variant="outline" size="sm">
-              Automations
+
+            <Button variant="outline" size="sm" className="h-9 gap-1.5 px-3">
+              <Gear className="h-4 w-4" />
+              <span>Automations</span>
             </Button>
-            <Button variant="outline" size="sm">
-              Export
-            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 gap-1.5 px-3"
+                >
+                  <FileArrowDown className="h-4 w-4" />
+                  <span>Export</span>
+                  <CaretDown className="h-3.5 w-3.5 ml-1 opacity-70" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem>Export as CSV</DropdownMenuItem>
+                <DropdownMenuItem>Export as Excel</DropdownMenuItem>
+                <DropdownMenuItem>Export as PDF</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-          <div className="flex items-center space-x-2">
-            <Input placeholder="Search..." className="max-w-sm" />
+
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <MagnifyingGlass className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search companies..."
+                className="pl-9 h-9 w-64 focus-visible:ring-primary/20"
+              />
+            </div>
+
+            <Button variant="outline" size="sm" className="h-9 w-9 p-0">
+              <FunnelSimple className="h-4 w-4" />
+            </Button>
+
+            <Button variant="outline" size="sm" className="h-9 w-9 p-0">
+              <DotsThreeVertical className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </div>
@@ -296,9 +358,61 @@ export function CompanyDataTable() {
       </div>
 
       {/* Sticky Footer */}
-      <div className="sticky bottom-0 bg-background z-20 py-2 border-t">
-        <div className="text-sm text-muted-foreground">
-          {data.length} records
+      <div className="sticky bottom-0 bg-background z-20 py-3 px-4 border-t">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Database className="h-4 w-4" />
+            <span>{data.length} records</span>
+            <span className="text-border px-2">|</span>
+            <span>Page 1 of 1</span>
+          </div>
+
+          <div className="flex items-center gap-1">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 w-8 p-0"
+              disabled
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+
+            <Button variant="outline" size="sm" className="h-8 px-3">
+              Page 1
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 w-8 p-0"
+              disabled
+            >
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+
+            <div className="mx-2 h-4 border-r border-border"></div>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 gap-1.5 px-3"
+                >
+                  <ListNumbers className="h-4 w-4" />
+                  <span>10 per page</span>
+                  <CaretDown className="h-3.5 w-3.5 ml-1 opacity-70" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem>5 per page</DropdownMenuItem>
+                <DropdownMenuItem>10 per page</DropdownMenuItem>
+                <DropdownMenuItem>25 per page</DropdownMenuItem>
+                <DropdownMenuItem>50 per page</DropdownMenuItem>
+                <DropdownMenuItem>100 per page</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
     </div>
