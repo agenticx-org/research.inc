@@ -65,16 +65,13 @@ export function DataTable<TData, TValue>({
   });
 
   return (
-    <div className="w-full rounded-md border overflow-auto">
+    <div className="w-full overflow-auto">
       <Table className="w-full border-collapse">
         <TableHeader className="bg-muted/50 sticky top-0 z-10">
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
-                <TableHead
-                  key={header.id}
-                  className="font-medium h-12 border-r border-border last:border-r-0"
-                >
+                <TableHead key={header.id} className="font-medium h-12">
                   {header.isPlaceholder
                     ? null
                     : flexRender(
@@ -95,10 +92,7 @@ export function DataTable<TData, TValue>({
                 className="h-14"
               >
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell
-                    key={cell.id}
-                    className="h-14 border-r border-border last:border-r-0"
-                  >
+                  <TableCell key={cell.id} className="h-14">
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}
