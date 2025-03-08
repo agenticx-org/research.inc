@@ -16,6 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 import {
   ArrowLeft,
   ArrowRight,
@@ -36,7 +37,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 // Define the data structure
 export interface Company {
@@ -52,17 +53,183 @@ export interface Company {
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  onSelectionChange?: (info: string | null, copyFn?: () => void) => void;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  onSelectionChange,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
+
+  // Add state for cell selection
+  const [selectionStart, setSelectionStart] = useState<{
+    rowIndex: number;
+    colIndex: number;
+  } | null>(null);
+  const [selectionEnd, setSelectionEnd] = useState<{
+    rowIndex: number;
+    colIndex: number;
+  } | null>(null);
+  const [isSelecting, setIsSelecting] = useState(false);
+  const [selectionInfo, setSelectionInfo] = useState<string | null>(null);
+
+  // Function to check if a cell is within the selection range
+  const isCellSelected = (rowIndex: number, colIndex: number) => {
+    if (!selectionStart || !selectionEnd) return false;
+
+    const startRow = Math.min(selectionStart.rowIndex, selectionEnd.rowIndex);
+    const endRow = Math.max(selectionStart.rowIndex, selectionEnd.rowIndex);
+    const startCol = Math.min(selectionStart.colIndex, selectionEnd.colIndex);
+    const endCol = Math.max(selectionStart.colIndex, selectionEnd.colIndex);
+
+    return (
+      rowIndex >= startRow &&
+      rowIndex <= endRow &&
+      colIndex >= startCol &&
+      colIndex <= endCol
+    );
+  };
+
+  // Function to copy selected cells to clipboard
+  const copySelectedCells = useCallback(() => {
+    if (!selectionStart || !selectionEnd) return;
+
+    const startRow = Math.min(selectionStart.rowIndex, selectionEnd.rowIndex);
+    const endRow = Math.max(selectionStart.rowIndex, selectionEnd.rowIndex);
+    const startCol = Math.min(selectionStart.colIndex, selectionEnd.colIndex);
+    const endCol = Math.max(selectionStart.colIndex, selectionEnd.colIndex);
+
+    // Get the visible rows and their cells
+    const rows = table.getRowModel().rows;
+
+    // Create a 2D array of cell values
+    const selectedData: string[][] = [];
+
+    for (let i = startRow; i <= endRow; i++) {
+      if (i >= rows.length) continue;
+
+      const rowData: string[] = [];
+      const cells = rows[i].getVisibleCells();
+
+      for (let j = startCol; j <= endCol; j++) {
+        if (j >= cells.length) continue;
+
+        // Get the cell value - this handles both simple values and rendered components
+        const cell = cells[j];
+        const cellValue = String(cell.getValue() || "");
+        rowData.push(cellValue);
+      }
+
+      selectedData.push(rowData);
+    }
+
+    // Convert to tab-separated values for clipboard
+    const tsv = selectedData.map((row) => row.join("\t")).join("\n");
+
+    // Copy to clipboard
+    navigator.clipboard
+      .writeText(tsv)
+      .then(() => {
+        setSelectionInfo(
+          `Copied ${selectedData.length} × ${
+            selectedData[0]?.length || 0
+          } cells to clipboard`
+        );
+        setTimeout(() => {
+          if (selectionStart && selectionEnd) {
+            const rowCount = endRow - startRow + 1;
+            const colCount = endCol - startCol + 1;
+            setSelectionInfo(
+              `Selected: ${
+                rowCount * colCount
+              } cells (${rowCount} × ${colCount})`
+            );
+          }
+        }, 2000);
+      })
+      .catch((err) => {
+        console.error("Failed to copy: ", err);
+      });
+  }, [selectionStart, selectionEnd, table]);
+
+  // Handle mouse down to start selection
+  const handleMouseDown = (rowIndex: number, colIndex: number) => {
+    setSelectionStart({ rowIndex, colIndex });
+    setSelectionEnd({ rowIndex, colIndex });
+    setIsSelecting(true);
+    setSelectionInfo(`Selected: 1 cell`);
+  };
+
+  // Handle mouse enter during selection
+  const handleMouseEnter = (rowIndex: number, colIndex: number) => {
+    if (isSelecting) {
+      setSelectionEnd({ rowIndex, colIndex });
+
+      // Update selection info
+      if (selectionStart) {
+        const startRow = Math.min(selectionStart.rowIndex, rowIndex);
+        const endRow = Math.max(selectionStart.rowIndex, rowIndex);
+        const startCol = Math.min(selectionStart.colIndex, colIndex);
+        const endCol = Math.max(selectionStart.colIndex, colIndex);
+
+        const rowCount = endRow - startRow + 1;
+        const colCount = endCol - startCol + 1;
+        const cellCount = rowCount * colCount;
+
+        setSelectionInfo(
+          `Selected: ${cellCount} cells (${rowCount} × ${colCount})`
+        );
+      }
+    }
+  };
+
+  // Handle mouse up to end selection
+  const handleMouseUp = () => {
+    setIsSelecting(false);
+  };
+
+  // Notify parent component when selection changes
+  useEffect(() => {
+    if (onSelectionChange) {
+      onSelectionChange(selectionInfo, copySelectedCells);
+    }
+  }, [selectionInfo, onSelectionChange, copySelectedCells]);
+
+  // Add event listener to handle mouse up outside the table
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      if (isSelecting) {
+        setIsSelecting(false);
+      }
+    };
+
+    // Add keyboard shortcut for copy
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        (e.ctrlKey || e.metaKey) &&
+        e.key === "c" &&
+        selectionStart &&
+        selectionEnd
+      ) {
+        e.preventDefault();
+        copySelectedCells();
+      }
+    };
+
+    window.addEventListener("mouseup", handleGlobalMouseUp);
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("mouseup", handleGlobalMouseUp);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isSelecting, selectionStart, selectionEnd, copySelectedCells]);
 
   return (
     <div className="w-full overflow-auto">
@@ -71,7 +238,10 @@ export function DataTable<TData, TValue>({
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
-                <TableHead key={header.id} className="font-medium h-12">
+                <TableHead
+                  key={header.id}
+                  className="font-medium h-12 border-r last:border-r-0"
+                >
                   {header.isPlaceholder
                     ? null
                     : flexRender(
@@ -85,14 +255,27 @@ export function DataTable<TData, TValue>({
         </TableHeader>
         <TableBody>
           {table.getRowModel().rows?.length ? (
-            table.getRowModel().rows.map((row) => (
+            table.getRowModel().rows.map((row, rowIndex) => (
               <TableRow
                 key={row.id}
                 data-state={row.getIsSelected() && "selected"}
                 className="h-14"
               >
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id} className="h-14">
+                {row.getVisibleCells().map((cell, colIndex) => (
+                  <TableCell
+                    key={cell.id}
+                    className={cn(
+                      "h-14 border-r last:border-r-0 select-none",
+                      isCellSelected(rowIndex, colIndex) &&
+                        "bg-blue-100 dark:bg-blue-900/30"
+                    )}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      handleMouseDown(rowIndex, colIndex);
+                    }}
+                    onMouseEnter={() => handleMouseEnter(rowIndex, colIndex)}
+                    onMouseUp={handleMouseUp}
+                  >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}
@@ -200,6 +383,18 @@ const sampleData: Company[] = [
 export function CompanyDataTable() {
   // Use state for data
   const [data] = useState<Company[]>(sampleData);
+  const [tableSelectionInfo, setTableSelectionInfo] = useState<string | null>(
+    null
+  );
+  const [copyCallback, setCopyCallback] = useState<(() => void) | null>(null);
+
+  // Handle selection change from DataTable
+  const handleSelectionChange = (info: string | null, copyFn?: () => void) => {
+    setTableSelectionInfo(info);
+    if (copyFn) {
+      setCopyCallback(() => copyFn);
+    }
+  };
 
   // Memoize columns to prevent unnecessary recalculations
   const columns = useMemo<ColumnDef<Company>[]>(
@@ -348,8 +543,29 @@ export function CompanyDataTable() {
 
       {/* Scrollable Table Area */}
       <div className="flex-grow overflow-auto">
-        <DataTable columns={columns} data={data} />
+        <DataTable
+          columns={columns}
+          data={data}
+          onSelectionChange={handleSelectionChange}
+        />
       </div>
+
+      {/* Selection Info */}
+      {tableSelectionInfo && (
+        <div className="bg-background border-t py-2 px-4 text-xs text-muted-foreground flex items-center justify-between z-30 relative">
+          <span>{tableSelectionInfo}</span>
+          {copyCallback && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 ml-2 text-xs"
+              onClick={copyCallback}
+            >
+              Copy
+            </Button>
+          )}
+        </div>
+      )}
 
       {/* Sticky Footer */}
       <div className="sticky bottom-0 bg-background z-20 py-3 px-4 border-t">
