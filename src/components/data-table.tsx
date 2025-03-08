@@ -96,6 +96,41 @@ export function DataTable<TData, TValue>({
     );
   };
 
+  // Function to determine the border styling for selected cells
+  const getSelectionBorderStyle = (rowIndex: number, colIndex: number) => {
+    if (!selectionStart || !selectionEnd || !isCellSelected(rowIndex, colIndex))
+      return "";
+
+    const startRow = Math.min(selectionStart.rowIndex, selectionEnd.rowIndex);
+    const endRow = Math.max(selectionStart.rowIndex, selectionEnd.rowIndex);
+    const startCol = Math.min(selectionStart.colIndex, selectionEnd.colIndex);
+    const endCol = Math.max(selectionStart.colIndex, selectionEnd.colIndex);
+
+    const borderClasses = [];
+
+    // Top border
+    if (rowIndex === startRow) {
+      borderClasses.push("border-t-2 border-t-blue-600");
+    }
+
+    // Bottom border
+    if (rowIndex === endRow) {
+      borderClasses.push("border-b-2 border-b-blue-600");
+    }
+
+    // Left border
+    if (colIndex === startCol) {
+      borderClasses.push("border-l-2 border-l-blue-600");
+    }
+
+    // Right border
+    if (colIndex === endCol) {
+      borderClasses.push("border-r-2 border-r-blue-600");
+    }
+
+    return borderClasses.join(" ");
+  };
+
   // Function to copy selected cells to clipboard
   const copySelectedCells = useCallback(() => {
     if (!selectionStart || !selectionEnd) return;
@@ -220,6 +255,14 @@ export function DataTable<TData, TValue>({
         e.preventDefault();
         copySelectedCells();
       }
+
+      // Clear selection when Escape key is pressed
+      if (e.key === "Escape" && (selectionStart || selectionEnd)) {
+        e.preventDefault();
+        setSelectionStart(null);
+        setSelectionEnd(null);
+        setSelectionInfo(null);
+      }
     };
 
     window.addEventListener("mouseup", handleGlobalMouseUp);
@@ -267,7 +310,8 @@ export function DataTable<TData, TValue>({
                     className={cn(
                       "h-14 border-r last:border-r-0 select-none",
                       isCellSelected(rowIndex, colIndex) &&
-                        "bg-blue-100 dark:bg-blue-900/30"
+                        "bg-blue-50/70 dark:bg-blue-900/10",
+                      getSelectionBorderStyle(rowIndex, colIndex)
                     )}
                     onMouseDown={(e) => {
                       e.preventDefault();
@@ -556,7 +600,6 @@ export function CompanyDataTable() {
           <span>{tableSelectionInfo}</span>
           {copyCallback && (
             <Button
-              variant="ghost"
               size="sm"
               className="h-7 ml-2 text-xs"
               onClick={copyCallback}
