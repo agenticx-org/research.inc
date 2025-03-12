@@ -296,6 +296,11 @@ export function DataTable<TData, TValue>({
           <TableHeader className="bg-muted/50 sticky top-0 z-10">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
+                {/* Row number header - empty */}
+                <TableHead
+                  className="font-medium h-12 w-10 text-center pr-0"
+                  style={{ minWidth: 40, maxWidth: 40 }}
+                ></TableHead>
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
@@ -332,6 +337,13 @@ export function DataTable<TData, TValue>({
                   data-state={row.getIsSelected() && "selected"}
                   className="h-14"
                 >
+                  {/* Row number cell */}
+                  <TableCell
+                    className="h-14 w-10 text-center text-muted-foreground text-sm pr-0"
+                    style={{ minWidth: 40, maxWidth: 40 }}
+                  >
+                    {rowIndex + 1}
+                  </TableCell>
                   {row.getVisibleCells().map((cell, colIndex) => (
                     <TableCell
                       key={cell.id}
@@ -364,7 +376,7 @@ export function DataTable<TData, TValue>({
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={columns.length}
+                  colSpan={columns.length + 1}
                   className="h-24 text-center"
                 >
                   No results.
@@ -376,6 +388,11 @@ export function DataTable<TData, TValue>({
               className="h-14 hover:bg-muted/30 cursor-pointer"
               onClick={onAddNewRow}
             >
+              {/* Row number cell for new row button */}
+              <TableCell
+                className="h-14 w-10 text-center text-muted-foreground text-sm pr-0 border-t-2 border-b-2 border-t-border border-b-border"
+                style={{ minWidth: 40, maxWidth: 40 }}
+              ></TableCell>
               {columns.map((column, index) => (
                 <TableCell
                   key={`new-row-${index}`}
