@@ -1,5 +1,6 @@
 "use client";
 
+import { Chat } from "@/components/chat/Chat";
 import { CompanyDataTable } from "@/components/data-table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -161,22 +162,7 @@ export default function TableView() {
                   minSize={30}
                   className="hidden md:block"
                 >
-                  <div className="w-full h-[calc(100vh-48px)] mt-[48px] overflow-y-scroll no-scrollbar">
-                    <div className="flex flex-col items-center justify-center h-full">
-                      <h2 className="text-2xl font-semibold">Panel 2</h2>
-                      <p className="text-sm text-muted-foreground mt-2">
-                        Press{" "}
-                        <kbd className="px-1.5 py-0.5 text-xs font-semibold border rounded-md">
-                          ⌘
-                        </kbd>{" "}
-                        +{" "}
-                        <kbd className="px-1.5 py-0.5 text-xs font-semibold border rounded-md">
-                          L
-                        </kbd>{" "}
-                        to close
-                      </p>
-                    </div>
-                  </div>
+                  <Chat />
                 </ResizablePanel>
               </>
             )}
