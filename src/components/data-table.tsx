@@ -54,12 +54,14 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   onSelectionChange?: (info: string | null, copyFn?: () => void) => void;
+  onAddNewRow?: () => void;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   onSelectionChange,
+  onAddNewRow,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -343,6 +345,26 @@ export function DataTable<TData, TValue>({
               </TableCell>
             </TableRow>
           )}
+          {/* New Row Button */}
+          <TableRow
+            className="h-14 hover:bg-muted/30 cursor-pointer"
+            onClick={onAddNewRow}
+          >
+            {columns.map((column, index) => (
+              <TableCell
+                key={`new-row-${index}`}
+                className="h-14 border-r last:border-r-0 select-none border-t-2 border-b-2 border-t-border border-b-border"
+                style={{ width: 240, minWidth: 240, maxWidth: 240 }}
+              >
+                {index === 0 && (
+                  <div className="flex items-center gap-1.5 text-muted-foreground">
+                    <Plus className="h-4 w-4" weight="bold" />
+                    <span>New row</span>
+                  </div>
+                )}
+              </TableCell>
+            ))}
+          </TableRow>
         </TableBody>
       </Table>
     </div>
@@ -437,7 +459,7 @@ const sampleData: Company[] = [
 // Create a component for the table with toolbar
 export function CompanyDataTable() {
   // Use state for data
-  const [data] = useState<Company[]>(sampleData);
+  const [data, setData] = useState<Company[]>(sampleData);
   const [tableSelectionInfo, setTableSelectionInfo] = useState<string | null>(
     null
   );
@@ -449,6 +471,21 @@ export function CompanyDataTable() {
     if (copyFn) {
       setCopyCallback(() => copyFn);
     }
+  };
+
+  // Handle adding a new row
+  const handleAddNewRow = () => {
+    const newId = `${data.length + 1}`;
+    const newRow: Company = {
+      id: newId,
+      name: "",
+      url: "",
+      linkedin: "",
+      twitter: "",
+      facebook: "",
+      phone: "",
+    };
+    setData([...data, newRow]);
   };
 
   // Memoize columns to prevent unnecessary recalculations
@@ -616,6 +653,7 @@ export function CompanyDataTable() {
           columns={columns}
           data={data}
           onSelectionChange={handleSelectionChange}
+          onAddNewRow={handleAddNewRow}
         />
       </div>
 
