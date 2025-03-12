@@ -27,9 +27,11 @@ import {
   FileArrowUp,
   FunnelSimple,
   Gear,
+  Link,
   ListNumbers,
   MagnifyingGlass,
   Plus,
+  TextT,
 } from "@phosphor-icons/react";
 import {
   ColumnDef,
@@ -55,6 +57,7 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
   onSelectionChange?: (info: string | null, copyFn?: () => void) => void;
   onAddNewRow?: () => void;
+  onAddNewColumn?: () => void;
 }
 
 export function DataTable<TData, TValue>({
@@ -62,6 +65,7 @@ export function DataTable<TData, TValue>({
   data,
   onSelectionChange,
   onAddNewRow,
+  onAddNewColumn,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -284,89 +288,116 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="w-full overflow-auto">
-      <Table
-        className="w-auto border-collapse table-fixed"
-        style={{ minWidth: columns.length * 240 }}
-      >
-        <TableHeader className="bg-muted/50 sticky top-0 z-10">
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <TableHead
-                  key={header.id}
-                  className="font-medium h-12 border-r last:border-r-0"
+      <div className="flex w-full">
+        <Table
+          className="w-auto border-collapse table-fixed"
+          style={{ minWidth: columns.length * 240 }}
+        >
+          <TableHeader className="bg-muted/50 sticky top-0 z-10">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead
+                    key={header.id}
+                    className="font-medium h-12 border-r last:border-r-0"
+                    style={{ width: 240, minWidth: 240, maxWidth: 240 }}
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                ))}
+                {/* Add Column Button */}
+                {onAddNewColumn && (
+                  <TableHead
+                    className="font-medium h-12 border-l hover:bg-muted/30 cursor-pointer w-full"
+                    onClick={onAddNewColumn}
+                  >
+                    <div className="flex items-center justify-center">
+                      <Plus className="h-4 w-4" weight="bold" />
+                    </div>
+                  </TableHead>
+                )}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row, rowIndex) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                  className="h-14"
+                >
+                  {row.getVisibleCells().map((cell, colIndex) => (
+                    <TableCell
+                      key={cell.id}
+                      className={cn(
+                        "h-14 border-r last:border-r-0 select-none",
+                        isCellSelected(rowIndex, colIndex) &&
+                          "bg-blue-50/70 dark:bg-blue-900/10",
+                        getSelectionBorderStyle(rowIndex, colIndex)
+                      )}
+                      style={{ width: 240, minWidth: 240, maxWidth: 240 }}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        handleMouseDown(rowIndex, colIndex);
+                      }}
+                      onMouseEnter={() => handleMouseEnter(rowIndex, colIndex)}
+                      onMouseUp={handleMouseUp}
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
+                  {/* Empty cell for add column button column */}
+                  {onAddNewColumn && (
+                    <TableCell className="h-14 border-l w-full"></TableCell>
+                  )}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  No results.
+                </TableCell>
+              </TableRow>
+            )}
+            {/* New Row Button */}
+            <TableRow
+              className="h-14 hover:bg-muted/30 cursor-pointer"
+              onClick={onAddNewRow}
+            >
+              {columns.map((column, index) => (
+                <TableCell
+                  key={`new-row-${index}`}
+                  className="h-14 border-r last:border-r-0 select-none border-t-2 border-b-2 border-t-border border-b-border"
                   style={{ width: 240, minWidth: 240, maxWidth: 240 }}
                 >
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
-                </TableHead>
+                  {index === 0 && (
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <Plus className="h-4 w-4" weight="bold" />
+                      <span>New row</span>
+                    </div>
+                  )}
+                </TableCell>
               ))}
+              {/* Empty cell for add column button column in new row */}
+              {onAddNewColumn && (
+                <TableCell className="h-14 border-l w-full border-t-2 border-b-2 border-t-border border-b-border"></TableCell>
+              )}
             </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows?.length ? (
-            table.getRowModel().rows.map((row, rowIndex) => (
-              <TableRow
-                key={row.id}
-                data-state={row.getIsSelected() && "selected"}
-                className="h-14"
-              >
-                {row.getVisibleCells().map((cell, colIndex) => (
-                  <TableCell
-                    key={cell.id}
-                    className={cn(
-                      "h-14 border-r last:border-r-0 select-none",
-                      isCellSelected(rowIndex, colIndex) &&
-                        "bg-blue-50/70 dark:bg-blue-900/10",
-                      getSelectionBorderStyle(rowIndex, colIndex)
-                    )}
-                    style={{ width: 240, minWidth: 240, maxWidth: 240 }}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      handleMouseDown(rowIndex, colIndex);
-                    }}
-                    onMouseEnter={() => handleMouseEnter(rowIndex, colIndex)}
-                    onMouseUp={handleMouseUp}
-                  >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
-                No results.
-              </TableCell>
-            </TableRow>
-          )}
-          {/* New Row Button */}
-          <TableRow
-            className="h-14 hover:bg-muted/30 cursor-pointer"
-            onClick={onAddNewRow}
-          >
-            {columns.map((column, index) => (
-              <TableCell
-                key={`new-row-${index}`}
-                className="h-14 border-r last:border-r-0 select-none border-t-2 border-b-2 border-t-border border-b-border"
-                style={{ width: 240, minWidth: 240, maxWidth: 240 }}
-              >
-                {index === 0 && (
-                  <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <Plus className="h-4 w-4" weight="bold" />
-                    <span>New row</span>
-                  </div>
-                )}
-              </TableCell>
-            ))}
-          </TableRow>
-        </TableBody>
-      </Table>
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }
@@ -488,12 +519,26 @@ export function CompanyDataTable() {
     setData([...data, newRow]);
   };
 
+  // Handle adding a new column with column type selection
+  const handleAddNewColumn = () => {
+    // This would typically show a dropdown with column types:
+    // Single line text, Long text, Single select, Multi select, HTTP, URL, File, Number, Date
+    alert(
+      "Add new column functionality would be implemented here with column type selection"
+    );
+  };
+
   // Memoize columns to prevent unnecessary recalculations
   const columns = useMemo<ColumnDef<Company>[]>(
     () => [
       {
         accessorKey: "name",
-        header: "Company",
+        header: () => (
+          <div className="flex items-center gap-2">
+            <TextT className="h-4 w-4 text-muted-foreground" />
+            <span>Company</span>
+          </div>
+        ),
         size: 240, // Updated to 240px
         cell: ({ getValue }) => (
           <div className="truncate max-w-[220px]" title={String(getValue())}>
@@ -503,7 +548,12 @@ export function CompanyDataTable() {
       },
       {
         accessorKey: "url",
-        header: "Company URL",
+        header: () => (
+          <div className="flex items-center gap-2">
+            <Link className="h-4 w-4 text-muted-foreground" />
+            <span>Company URL</span>
+          </div>
+        ),
         size: 240, // Updated to 240px
         cell: ({ row }) => (
           <a
@@ -514,7 +564,7 @@ export function CompanyDataTable() {
             }
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 hover:underline truncate max-w-[220px] block"
+            className="text-foreground hover:underline truncate max-w-[220px] block"
             title={row.original.url}
           >
             {row.original.url}
@@ -523,7 +573,12 @@ export function CompanyDataTable() {
       },
       {
         accessorKey: "linkedin",
-        header: "LinkedIn",
+        header: () => (
+          <div className="flex items-center gap-2">
+            <Link className="h-4 w-4 text-muted-foreground" />
+            <span>LinkedIn</span>
+          </div>
+        ),
         size: 240, // Updated to 240px
         cell: ({ row }) =>
           row.original.linkedin ? (
@@ -531,7 +586,7 @@ export function CompanyDataTable() {
               href={row.original.linkedin}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 hover:underline truncate max-w-[220px] block"
+              className="text-foreground hover:underline truncate max-w-[220px] block"
               title={row.original.linkedin}
             >
               {row.original.linkedin}
@@ -540,7 +595,12 @@ export function CompanyDataTable() {
       },
       {
         accessorKey: "twitter",
-        header: "Twitter",
+        header: () => (
+          <div className="flex items-center gap-2">
+            <Link className="h-4 w-4 text-muted-foreground" />
+            <span>Twitter</span>
+          </div>
+        ),
         size: 240, // Updated to 240px
         cell: ({ row }) =>
           row.original.twitter ? (
@@ -548,7 +608,7 @@ export function CompanyDataTable() {
               href={row.original.twitter}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 hover:underline truncate max-w-[220px] block"
+              className="text-foreground hover:underline truncate max-w-[220px] block"
               title={row.original.twitter}
             >
               {row.original.twitter}
@@ -557,7 +617,12 @@ export function CompanyDataTable() {
       },
       {
         accessorKey: "facebook",
-        header: "Facebook",
+        header: () => (
+          <div className="flex items-center gap-2">
+            <Link className="h-4 w-4 text-muted-foreground" />
+            <span>Facebook</span>
+          </div>
+        ),
         size: 240, // Updated to 240px
         cell: ({ row }) =>
           row.original.facebook ? (
@@ -565,7 +630,7 @@ export function CompanyDataTable() {
               href={row.original.facebook}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 hover:underline truncate max-w-[220px] block"
+              className="text-foreground hover:underline truncate max-w-[220px] block"
               title={row.original.facebook}
             >
               {row.original.facebook}
@@ -574,7 +639,12 @@ export function CompanyDataTable() {
       },
       {
         accessorKey: "phone",
-        header: "Phone",
+        header: () => (
+          <div className="flex items-center gap-2">
+            <TextT className="h-4 w-4 text-muted-foreground" />
+            <span>Phone</span>
+          </div>
+        ),
         size: 240, // Updated to 240px
         cell: ({ getValue }) => (
           <div className="truncate max-w-[220px]" title={String(getValue())}>
@@ -654,6 +724,7 @@ export function CompanyDataTable() {
           data={data}
           onSelectionChange={handleSelectionChange}
           onAddNewRow={handleAddNewRow}
+          onAddNewColumn={handleAddNewColumn}
         />
       </div>
 
