@@ -65,6 +65,12 @@ export function DataTable<TData, TValue>({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    columnResizeMode: "onChange",
+    defaultColumn: {
+      minSize: 240,
+      maxSize: 240,
+      size: 240,
+    },
   });
 
   // Add state for cell selection
@@ -276,7 +282,10 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="w-full overflow-auto">
-      <Table className="w-full border-collapse">
+      <Table
+        className="w-auto border-collapse table-fixed"
+        style={{ minWidth: columns.length * 240 }}
+      >
         <TableHeader className="bg-muted/50 sticky top-0 z-10">
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
@@ -284,6 +293,7 @@ export function DataTable<TData, TValue>({
                 <TableHead
                   key={header.id}
                   className="font-medium h-12 border-r last:border-r-0"
+                  style={{ width: 240, minWidth: 240, maxWidth: 240 }}
                 >
                   {header.isPlaceholder
                     ? null
@@ -313,6 +323,7 @@ export function DataTable<TData, TValue>({
                         "bg-blue-50/70 dark:bg-blue-900/10",
                       getSelectionBorderStyle(rowIndex, colIndex)
                     )}
+                    style={{ width: 240, minWidth: 240, maxWidth: 240 }}
                     onMouseDown={(e) => {
                       e.preventDefault();
                       handleMouseDown(rowIndex, colIndex);
@@ -446,12 +457,17 @@ export function CompanyDataTable() {
       {
         accessorKey: "name",
         header: "Company",
-        size: 150, // Fixed width
+        size: 240, // Updated to 240px
+        cell: ({ getValue }) => (
+          <div className="truncate max-w-[220px]" title={String(getValue())}>
+            {getValue() as string}
+          </div>
+        ),
       },
       {
         accessorKey: "url",
         header: "Company URL",
-        size: 200, // Fixed width
+        size: 240, // Updated to 240px
         cell: ({ row }) => (
           <a
             href={
@@ -461,7 +477,8 @@ export function CompanyDataTable() {
             }
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 hover:underline"
+            className="text-blue-600 hover:underline truncate max-w-[220px] block"
+            title={row.original.url}
           >
             {row.original.url}
           </a>
@@ -470,14 +487,15 @@ export function CompanyDataTable() {
       {
         accessorKey: "linkedin",
         header: "LinkedIn",
-        size: 250, // Fixed width
+        size: 240, // Updated to 240px
         cell: ({ row }) =>
           row.original.linkedin ? (
             <a
               href={row.original.linkedin}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 hover:underline"
+              className="text-blue-600 hover:underline truncate max-w-[220px] block"
+              title={row.original.linkedin}
             >
               {row.original.linkedin}
             </a>
@@ -486,14 +504,15 @@ export function CompanyDataTable() {
       {
         accessorKey: "twitter",
         header: "Twitter",
-        size: 200, // Fixed width
+        size: 240, // Updated to 240px
         cell: ({ row }) =>
           row.original.twitter ? (
             <a
               href={row.original.twitter}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 hover:underline"
+              className="text-blue-600 hover:underline truncate max-w-[220px] block"
+              title={row.original.twitter}
             >
               {row.original.twitter}
             </a>
@@ -502,14 +521,15 @@ export function CompanyDataTable() {
       {
         accessorKey: "facebook",
         header: "Facebook",
-        size: 250, // Fixed width
+        size: 240, // Updated to 240px
         cell: ({ row }) =>
           row.original.facebook ? (
             <a
               href={row.original.facebook}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 hover:underline"
+              className="text-blue-600 hover:underline truncate max-w-[220px] block"
+              title={row.original.facebook}
             >
               {row.original.facebook}
             </a>
@@ -518,7 +538,12 @@ export function CompanyDataTable() {
       {
         accessorKey: "phone",
         header: "Phone",
-        size: 150, // Fixed width
+        size: 240, // Updated to 240px
+        cell: ({ getValue }) => (
+          <div className="truncate max-w-[220px]" title={String(getValue())}>
+            {getValue() as string}
+          </div>
+        ),
       },
     ],
     []
