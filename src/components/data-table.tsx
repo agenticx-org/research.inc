@@ -118,29 +118,12 @@ export function DataTable<TData, TValue>({
     const startCol = Math.min(selectionStart.colIndex, selectionEnd.colIndex);
     const endCol = Math.max(selectionStart.colIndex, selectionEnd.colIndex);
 
-    const borderClasses = [];
-
-    // Top border
-    if (rowIndex === startRow) {
-      borderClasses.push("border-t-2 border-t-blue-600");
-    }
-
-    // Bottom border
-    if (rowIndex === endRow) {
-      borderClasses.push("border-b-2 border-b-blue-600");
-    }
-
-    // Left border
-    if (colIndex === startCol) {
-      borderClasses.push("border-l-2 border-l-blue-600");
-    }
-
-    // Right border
-    if (colIndex === endCol) {
-      borderClasses.push("border-r-2 border-r-blue-600");
-    }
-
-    return borderClasses.join(" ");
+    return cn({
+      "border-t-2 border-t-gray-600": rowIndex === startRow,
+      "border-b-2 border-b-gray-600": rowIndex === endRow,
+      "border-l-2 border-l-gray-600": colIndex === startCol,
+      "border-r-2 border-r-gray-600": colIndex === endCol,
+    });
   };
 
   // Function to copy selected cells to clipboard
@@ -350,7 +333,7 @@ export function DataTable<TData, TValue>({
                       className={cn(
                         "h-14 border-r last:border-r-0 select-none",
                         isCellSelected(rowIndex, colIndex) &&
-                          "bg-blue-50/70 dark:bg-blue-900/10",
+                          "bg-gray-100/70 dark:bg-gray-800/20",
                         getSelectionBorderStyle(rowIndex, colIndex)
                       )}
                       style={{ width: 240, minWidth: 240, maxWidth: 240 }}
