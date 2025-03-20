@@ -13,6 +13,7 @@ event = {
   "block_id":"234234234AWEFAWEF",
   "document_id":"AWEFAWE3453453453",
   "chat_id":"34234DFAWFA", # to load the context of the conversation
+  "user_id":"23423423AWEFAWEFAWEF", # current authenticated user
 }
 
 event_names = [
@@ -110,3 +111,14 @@ The user has the ability to:
 - If it is a block in the chat, to apply the new content to the current document either replacing the existing content
 if it is an existing block, or adding a new block. We need to somehow know which block to add it after. To start with we can just
 add it to the end.
+
+Domain model:
+
+The current domain model is as follows:
+
+Chat - an interactive session with the user consisting of a sequence of messages which are also Blocks
+Document - a sorted collection of Blocks
+Block - an element of content which is displayed to the user and consists of data and metadata about how to render it
+Agent - an orchestrator which listens to commands from the user and performs actions on their behalf
+Comms - a processor which manages the websockets and their threads and sends and recieves data on these channels
+User - a user of the application and their profile, owns a series of Documents and Chats
