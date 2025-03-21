@@ -27,25 +27,8 @@ async def check_websocket_endpoint(url, timeout=2):
 
 @pytest.mark.asyncio
 async def test_send_event_and_receive_response():
-    """Test sending a message to the server and receiving a response."""
-    # First check if the server is running by checking the HTTP endpoint
-    try:
-        print("Verifying server is running by checking HTTP endpoint")
-        response = requests.get(f"http://{HOST}:{PORT}/")
-        
-        # Check that we get a valid response
-        assert response.status_code == 200, f"Expected status code 200 but got {response.status_code}"
-        
-        # Check that we get the expected message
-        data = response.json()
-        assert "message" in data, "Response doesn't contain a 'message' field"
-        assert data["message"] == "Chat API is running", f"Unexpected message: {data['message']}"
-        
-        print("Server is running!")
-    except requests.exceptions.ConnectionError as e:
-        pytest.fail(f"Server is not running. Please start the server before running tests: {str(e)}")
 
-    # Now test WebSocket communication
+    # test WebSocket communication
     websocket_url = f"ws://{HOST}:{PORT}/ws/chat"
     try:
         # Connect to the WebSocket

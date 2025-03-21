@@ -38,3 +38,9 @@ The server will be available at `http://localhost:8000`.
 Once the server is running, visit:
 - `http://localhost:8000/docs` for Swagger UI documentation
 - `http://localhost:8000/redoc` for ReDoc documentation 
+
+
+## Testing
+
+python -m pytest -xvs test/test_integration_send_event.py
+
