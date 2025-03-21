@@ -2,7 +2,8 @@ import asyncio
 import logging
 import json
 import random
-from typing import Dict, Any, List, Callable, AsyncGenerator
+import time
+from typing import Dict, Any, List, Callable, AsyncGenerator, Awaitable
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -87,38 +88,92 @@ class StreamingLLMSimulator:
             await asyncio.sleep(delay)
 
 async def process_message(
-    message: str, 
-    model_id: str, 
-    is_agent: bool,
-    send_chunk: Callable[[Dict[str, Any]], None]
+    event: Dict[str, Any], 
+    send_chunk: Callable[[Dict[str, Any]], Awaitable[bool]]
 ) -> None:
     """
     Process a message and stream the response using the provided callback.
-    """
-    simulator = StreamingLLMSimulator(model_id, is_agent)
     
-    # Send thinking state
+    Args:
+        event: The event data, including message content, model, and block_ids
+        send_chunk: Async function to send chunks back to the client
+    """
+    # Set a max time for the entire process
+    MAX_PROCESS_TIME = 60  # seconds
+    start_time = time.time()
+    
+    logger.info(f"Processing message for block_ids: {event.get('block_ids', '')}")
+    logger.info(f"Event: {event}")
+
     try:
-        send_chunk({"type": "status", "status": "thinking"})
+        # Extract event data
+        model = event.get("model", "default_model")
+        mode = event.get("mode", "chat")
+        message_content = event.get("message", {}).get("content", "")
+        block_ids = event.get("block_ids", "")
         
-        # Simulate processing delay
-        await asyncio.sleep(0.8)
+        logger.info(f"Processing message for block_ids: {block_ids}")
         
-        # Stream the response
-        async for chunk in simulator.generate_streaming_response(message):
-            # Check if sending was successful, break if not
-            result = send_chunk({"type": "chunk", "content": chunk})
-            if result is False:  # If send_chunk returns False, stop streaming
-                logger.warning("Client disconnected during streaming, stopping response generation")
+        # Create simulator
+        simulator = StreamingLLMSimulator(model, mode == "agent")
+
+        logger.info(f"About to send thinking status")
+        
+        # Send thinking state
+        sent = await send_chunk({"type": "status", "status": "thinking"})
+        if not sent:
+            logger.warning("Failed to send thinking status, client likely disconnected")
+            return
+        
+        # Simulate processing delay but check for cancellation
+        for _ in range(8):  # 0.8 seconds in 0.1s increments
+            await asyncio.sleep(0.1)
+            # Regular check if we should exit (e.g., due to timeout)
+            if time.time() - start_time > MAX_PROCESS_TIME:
+                logger.warning(f"Processing exceeded max time ({MAX_PROCESS_TIME}s), exiting")
                 return
         
-        # Send completion message
-        send_chunk({"type": "status", "status": "complete"})
+        # Stream the response
+        try:
+            async for chunk in simulator.generate_streaming_response(message_content):
+                # Check if streaming is taking too long
+                if time.time() - start_time > MAX_PROCESS_TIME:
+                    logger.warning(f"Streaming exceeded max time ({MAX_PROCESS_TIME}s), stopping")
+                    break
+                
+                # Check if sending was successful, break if not
+                result = await send_chunk({
+                    "type": "md",
+                    "content": chunk
+                })
+                
+                if result is False:
+                    logger.warning("Client disconnected during streaming, stopping response generation")
+                    return
+                
+                # Add a small sleep to improve cancellation responsiveness
+                await asyncio.sleep(0.01)
+        except asyncio.CancelledError:
+            # If cancelled during the streaming loop, propagate
+            logger.info(f"Task cancelled during streaming for block_ids: {block_ids}")
+            raise
+        
+        # Send completion message if we made it through
+        try:
+            await send_chunk({"type": "status", "status": "complete"})
+        except Exception as e:
+            logger.warning(f"Failed to send completion status: {e}")
+        
+    except asyncio.CancelledError:
+        # Handle cancellation gracefully
+        logger.info(f"Task cancelled for block_ids: {event.get('block_ids', '')}")
+        # Don't send any more messages
+        raise
         
     except Exception as e:
         logger.error(f"Error in process_message: {str(e)}")
         # Try to send error status if possible
         try:
-            send_chunk({"type": "status", "status": "error"})
+            await send_chunk({"type": "status", "status": "error"})
         except:
             pass 

@@ -58,7 +58,7 @@ chunk = {
   "block_ids": "344342EAFWEEF", # globally unique block ids, both persisted in the database and to identify the UI component. Comma separated.
   "document_id": "8378373FAWEFAWEF", # unique document id, not always present
   "content": " that is go", # partial content returned
-  "end": true, # indication that it is the end of a block
+  "status": "complete", # indication that it is the end of a block
   "new_doc": false, # indication that a completely new document structure is being provided
 }
 
@@ -66,6 +66,7 @@ chunk_types = [
   "md", # markdown content
   "csv", # csv file with header on first row
   "image/jpg", # image to partially render
+  "status", # simply a status message
 ]
 
 We will need some way to pass metadata as well to each block. As we have this requirement, we can specify specific chunk_types, such as "interative_chart"

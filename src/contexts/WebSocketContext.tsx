@@ -106,7 +106,7 @@ export function WebSocketProvider({ children, url }: WebSocketProviderProps) {
           // Handle specific message types
           if (data.type === 'status') {
             statusHandlers.forEach(handler => handler(data.status));
-          } else if (data.type === 'chunk') {
+          } else if (data.type === 'md') {
             chunkHandlers.forEach(handler => handler(data.content));
           }
         } catch (error) {
@@ -153,10 +153,18 @@ export function WebSocketProvider({ children, url }: WebSocketProviderProps) {
   const sendMessage = (message: string, modelId: ModelId, isAgent: boolean) => {
     if (socketRef.current?.readyState === WebSocket.OPEN) {
       const payload = JSON.stringify({
-        message,
-        model_id: modelId,
-        is_agent: isAgent,
-      });
+        "name" : "chat_message",
+        "message": {
+            "content" : message,
+            "role": "user"
+        },
+        "model":modelId,
+        "mode":"chat",
+        "block_ids":"234234234AWEFAWEF",
+        "document_id":"AWEFAWE3453453453",
+        "chat_id":"34234DFAWFA", 
+        "user_id":"23423423AWEFAWEFAWEF",
+    });
       console.log('Sending message:', payload);
       socketRef.current.send(payload);
       return true;
