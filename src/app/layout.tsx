@@ -1,8 +1,9 @@
 /* eslint-disable @next/next/no-sync-scripts */
-import { Toaster } from "@/components/ui/sonner";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { WebSocketProvider } from "@/components/providers/WebSocketProvider";
+import { ToasterProvider } from "@/components/providers/ToasterProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,15 +15,18 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// WebSocket URL from environment
+const WEBSOCKET_URL = process.env.NEXT_PUBLIC_WEBSOCKET_URL || "ws://localhost:8000/ws/chat";
+
 export const metadata: Metadata = {
   title: "Research.inc",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <head>
@@ -34,8 +38,10 @@ export default function RootLayout({
         )}
       </head>
       <body className="antialiased">
-        {children}
-        <Toaster />
+        <WebSocketProvider>
+          {children}
+        </WebSocketProvider>
+        <ToasterProvider />
       </body>
     </html>
   );

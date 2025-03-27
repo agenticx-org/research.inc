@@ -29,6 +29,8 @@ interface ChatState {
   // State
   message: string;
   isLoading: boolean;
+  isStreaming: boolean;
+  streamingContent: MessageContent[];
   files: File[];
   selectedModel: ModelId;
   messages: Message[];
@@ -38,6 +40,10 @@ interface ChatState {
   // Actions
   setMessage: (message: string) => void;
   setIsLoading: (isLoading: boolean) => void;
+  setIsStreaming: (isStreaming: boolean) => void;
+  updateStreamingContent: (content: MessageContent) => void;
+  commitStreamingContent: () => void;
+  clearStreamingContent: () => void;
   setFiles: (files: File[]) => void;
   addFiles: (newFiles: File[]) => void;
   clearFiles: () => void;
@@ -76,6 +82,8 @@ export const useChatStore = create<ChatState>()(
       // Initial state
       message: "",
       isLoading: false,
+      isStreaming: false,
+      streamingContent: [],
       files: [],
       selectedModel: "claude3.7" as ModelId,
       messages: [],
@@ -85,6 +93,44 @@ export const useChatStore = create<ChatState>()(
       // Actions
       setMessage: (message: string) => set({ message }),
       setIsLoading: (isLoading: boolean) => set({ isLoading }),
+      setIsStreaming: (isStreaming: boolean) => set({ isStreaming }),
+      
+      // Update streaming content with a new chunk
+      updateStreamingContent: (content: MessageContent) => 
+        set((state) => {
+          // If this is a text content and we already have text content, append to it
+          if (content.type === "text" && 
+              state.streamingContent.length > 0 && 
+              state.streamingContent[state.streamingContent.length - 1].type === "text") {
+            
+            const lastItem = state.streamingContent[state.streamingContent.length - 1] as { type: "text", text: string };
+            lastItem.text += content.text;
+          } else {
+            // Otherwise add as a new content item
+            state.streamingContent.push(content);
+          }
+        }),
+      
+      // Commit streaming content to the messages
+      commitStreamingContent: () => 
+        set((state) => {
+          if (state.streamingContent.length > 0) {
+            state.messages.push({
+              role: "ai",
+              content: [...state.streamingContent],
+            });
+            state.streamingContent = [];
+            state.isStreaming = false;
+          }
+        }),
+      
+      // Clear streaming content
+      clearStreamingContent: () => 
+        set((state) => {
+          state.streamingContent = [];
+          state.isStreaming = false;
+        }),
+        
       setFiles: (files: File[]) => set({ files }),
       addFiles: (newFiles: File[]) =>
         set((state) => {
@@ -112,7 +158,7 @@ export const useChatStore = create<ChatState>()(
         }),
       clearMessages: () => set({ messages: [] }),
       setIsAgent: (isAgent: boolean) => set({ isAgent }),
-
+      
       // Add a new selected text item with a unique color
       addSelectedText: (
         text: string,
@@ -154,8 +200,57 @@ export const useChatStore = create<ChatState>()(
           );
         }),
 
-      // Clear all selected text items
+      // Clear all selected texts
       clearSelectedTexts: () => set({ selectedTextItems: [] }),
+
+      // Handler for when the prompt is submitted
+      handleSubmit: () => {
+        const { message, selectedTextItems } = get();
+
+        // If there's no message and no selections, don't do anything
+        if (!message.trim() && selectedTextItems.length === 0) {
+          return;
+        }
+
+        // Set loading state
+        set({ isLoading: true });
+
+        // Create a message that includes both the typed text and any selections
+        let fullMessage = message.trim();
+
+        // Add any selected text snippets to the message
+        if (selectedTextItems.length > 0) {
+          fullMessage += "\n\nSelected text:\n";
+          selectedTextItems.forEach((item) => {
+            fullMessage += `\n---\n${item.text}\n---\n`;
+          });
+        }
+
+        // Add user message to the chat
+        get().addUserMessage(fullMessage);
+
+        // Clear the input
+        set({ message: "" });
+
+        // For demonstration, add a dummy AI response after a short delay
+        // This should be replaced with the actual API call
+        setTimeout(() => {
+          get().addAgentResponse([
+            { type: "text", text: "This is a placeholder response." },
+          ]);
+          set({ isLoading: false });
+        }, 1000);
+      },
+
+      // Handler for file input change
+      handleFileChange: (event: React.ChangeEvent<HTMLInputElement>) => {
+        const files = event.target.files;
+        if (files && files.length > 0) {
+          // Convert FileList to array and add to state
+          const fileArray = Array.from(files);
+          get().addFiles(fileArray);
+        }
+      },
 
       setMessageAndTogglePanel: (
         message: string,
@@ -164,120 +259,22 @@ export const useChatStore = create<ChatState>()(
         to?: number,
         path?: number[]
       ) => {
-        if (isSelectedText) {
-          // Generate a unique ID for this selection
-          const id = Date.now().toString();
-
-          // Calculate the color index based on current selections
-          const { selectedTextItems } = get();
-          const colorIndex = selectedTextItems.length % SELECTION_COLORS.length;
-          const colorClass = SELECTION_COLORS[colorIndex];
-
-          // Add the selected text with position information
-          get().addSelectedText(message, id, colorClass, from, to, path);
+        if (isSelectedText && from !== undefined && to !== undefined) {
+          get().addSelectedText(message, undefined, undefined, from, to, path);
         } else {
-          set({ message });
-        }
-        // This is a custom event to toggle the panel visibility
-        const event = new CustomEvent("toggleChatPanel", {
-          detail: {
-            shouldOpen: !!message.trim(),
-            forceToggle: !message.trim(),
-          },
-        });
-        window.dispatchEvent(event);
-      },
-
-      // Handlers
-      handleSubmit: () => {
-        const { message, files, selectedTextItems } = get();
-
-        // Combine all selected texts with the message
-        let textToSend = message;
-
-        if (selectedTextItems.length > 0) {
-          const selectedTextsContent = selectedTextItems
-            .map((item) => item.text)
-            .join("\n\n");
-
-          textToSend = selectedTextsContent + (message ? `\n\n${message}` : "");
-        }
-
-        if (textToSend.trim() || files.length > 0) {
-          // Add user message
           set((state) => {
-            state.messages.push({
-              role: "user",
-              content: [{ type: "text", text: textToSend }],
-            });
-            state.isLoading = true;
-            state.message = "";
-            state.selectedTextItems = [];
-            state.files = [];
-          });
-
-          // Mock AI response - replace with actual API call
-          setTimeout(() => {
-            // Example of an agent response with mixed content
-            if (get().isAgent) {
-              set((state) => {
-                state.messages.push({
-                  role: "ai",
-                  content: [
-                    {
-                      type: "text",
-                      text: "I found some information for you:",
-                    },
-                    {
-                      type: "element",
-                      element: {
-                        type: "web_search",
-                        content: {
-                          title: "Example Search Result",
-                          url: "https://example.com",
-                          snippet:
-                            "This is an example search result that demonstrates the UI element for web search results.",
-                        },
-                      },
-                    },
-                  ],
-                });
-                state.isLoading = false;
-              });
-            } else {
-              set((state) => {
-                state.messages.push({
-                  role: "ai",
-                  content: [
-                    {
-                      type: "text",
-                      text: "This is a standard AI response without UI elements.",
-                    },
-                  ],
-                });
-                state.isLoading = false;
-              });
-            }
-          }, 2000);
-        }
-      },
-
-      handleFileChange: (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (event.target.files) {
-          const newFiles = Array.from(event.target.files);
-          set((state) => {
-            state.files = [...state.files, ...newFiles];
+            state.message = state.message
+              ? `${state.message.trim()} ${message}`
+              : message;
           });
         }
       },
     })),
     {
-      name: "chat-storage",
+      name: "chat-store",
       partialize: (state) => ({
-        // Only persist specific parts of the state
-        // Files can't be serialized, so we exclude them
+        messages: state.messages,
         selectedModel: state.selectedModel,
-        // messages: state.messages,
         isAgent: state.isAgent,
       }),
     }

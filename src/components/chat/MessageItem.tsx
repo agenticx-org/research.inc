@@ -7,9 +7,10 @@ import { UIElement } from "./ui-elements";
 
 interface MessageItemProps {
   message: Message;
+  isStreaming?: boolean;
 }
 
-export function MessageItem({ message }: MessageItemProps) {
+export function MessageItem({ message, isStreaming = false }: MessageItemProps) {
   return (
     <div className="flex items-start gap-2 mb-4">
       {message.role === "user" ? (
@@ -26,6 +27,15 @@ export function MessageItem({ message }: MessageItemProps) {
           {message.content.map((content, idx) => (
             <MessageContent key={idx} content={content} />
           ))}
+          
+          {/* Show typing indicator when streaming */}
+          {isStreaming && (
+            <div className="flex items-center h-4 space-x-1 mt-1">
+              <div className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-pulse" style={{ animationDelay: "0ms" }}></div>
+              <div className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-pulse" style={{ animationDelay: "300ms" }}></div>
+              <div className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-pulse" style={{ animationDelay: "600ms" }}></div>
+            </div>
+          )}
         </div>
       </div>
     </div>
