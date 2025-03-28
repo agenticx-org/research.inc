@@ -1,14 +1,21 @@
 "use client";
 
-import { MessageContent, ModelId } from "@/types/chat";
-import React, { createContext, useContext, useEffect, useRef, useState } from "react";
+import { Message, MessageContent, ModelId } from "@/types/chat";
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+
+// Define WebSocket message types
+interface WebSocketMessage {
+  type: string;
+  status?: 'thinking' | 'complete' | 'error';
+  content?: MessageContent;
+}
 
 interface WebSocketContextType {
   isConnected: boolean;
   isConnecting: boolean;
   error: string | null;
-  sendMessage: (message: string, modelId: ModelId, isAgent: boolean) => boolean;
-  lastMessage: any | null;
+  sendMessage: (message: string, modelId: ModelId, isAgent: boolean, chatHistory?: Message[]) => boolean;
+  lastMessage: WebSocketMessage | null;
   connect: () => void;
   disconnect: () => void;
 }
@@ -30,7 +37,7 @@ const WebSocketContext = createContext<WebSocketContextType>({
 });
 
 // Custom event handlers
-type MessageHandler = (data: any) => void;
+type MessageHandler = (data: WebSocketMessage) => void;
 type StatusHandler = (status: 'thinking' | 'complete' | 'error') => void;
 type ChunkHandler = (content: MessageContent) => void;
 
@@ -43,7 +50,7 @@ export function WebSocketProvider({ children, url }: WebSocketProviderProps) {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [lastMessage, setLastMessage] = useState<any | null>(null);
+  const [lastMessage, setLastMessage] = useState<WebSocketMessage | null>(null);
   
   const socketRef = useRef<WebSocket | null>(null);
   const reconnectAttemptsRef = useRef(0);
@@ -53,7 +60,7 @@ export function WebSocketProvider({ children, url }: WebSocketProviderProps) {
   const RECONNECT_INTERVAL = 3000;
 
   // Connect to WebSocket
-  const connect = () => {
+  const connect = useCallback(() => {
     if (socketRef.current?.readyState === WebSocket.OPEN) return;
     
     setIsConnecting(true);
@@ -97,7 +104,7 @@ export function WebSocketProvider({ children, url }: WebSocketProviderProps) {
       
       ws.onmessage = (event) => {
         try {
-          const data = JSON.parse(event.data);
+          const data: WebSocketMessage = JSON.parse(event.data);
           setLastMessage(data);
           
           // Distribute messages to all registered handlers
@@ -105,9 +112,9 @@ export function WebSocketProvider({ children, url }: WebSocketProviderProps) {
           
           // Handle specific message types
           if (data.type === 'status') {
-            statusHandlers.forEach(handler => handler(data.status));
+            statusHandlers.forEach(handler => handler(data.status!));
           } else if (data.type === 'md') {
-            chunkHandlers.forEach(handler => handler(data.content));
+            chunkHandlers.forEach(handler => handler(data.content!));
           }
         } catch (error) {
           console.error('Error parsing WebSocket message:', error);
@@ -133,7 +140,7 @@ export function WebSocketProvider({ children, url }: WebSocketProviderProps) {
         }, RECONNECT_INTERVAL);
       }
     }
-  };
+  }, [url]);
 
   // Disconnect WebSocket
   const disconnect = () => {
@@ -150,7 +157,7 @@ export function WebSocketProvider({ children, url }: WebSocketProviderProps) {
   };
 
   // Send message
-  const sendMessage = (message: string, modelId: ModelId, isAgent: boolean) => {
+  const sendMessage = (message: string, modelId: ModelId, isAgent: boolean, chatHistory: Message[] = []) => {
     if (socketRef.current?.readyState === WebSocket.OPEN) {
       const payload = JSON.stringify({
         "name" : "chat_message",
@@ -158,6 +165,7 @@ export function WebSocketProvider({ children, url }: WebSocketProviderProps) {
             "content" : message,
             "role": "user"
         },
+        "chat_history": chatHistory,
         "model":modelId,
         "mode":"chat",
         "block_ids":"234234234AWEFAWEF",
@@ -182,7 +190,7 @@ export function WebSocketProvider({ children, url }: WebSocketProviderProps) {
     return () => {
       disconnect();
     };
-  }, [url]);
+  }, [url, connect]);
 
   const value = {
     isConnected,
@@ -229,4 +237,4 @@ export function useWebSocketHandlers({
       if (onChunk) chunkHandlers.delete(onChunk);
     };
   }, [onMessage, onStatusChange, onChunk]);
-} 
+}

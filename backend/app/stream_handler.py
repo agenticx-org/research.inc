@@ -17,7 +17,7 @@ FAKE_RESPONSES = {
     "default": [
         "I'd be happy to help with that question. ",
         "Based on my understanding, there are several key points to consider. ",
-        "First, it's important to note that this topic has multiple aspects. ",
+        "First, it's essential to note that this topic has multiple aspects. ",
         "Let me break this down step by step for better clarity. ",
         "In conclusion, I hope this explanation helps you understand the concept better.",
     ],
@@ -75,12 +75,16 @@ class StreamingLLMSimulator:
         return model_mapping.get(model_id, "claude-3-5-sonnet-latest")
 
     async def generate_streaming_response(
-        self, message: str
+        self, message: str, chat_history: List[Dict[str, Any]] = []
     ) -> AsyncGenerator[Dict[str, Any], None]:
         """
         Generate a streaming response using Anthropic's Claude API.
         Falls back to simulated responses if API key is not available.
         Returns chunks of content that mimic an LLM's streaming output.
+
+        Args:
+            message: The current user message
+            chat_history: Previous messages in the conversation
         """
         # If no API key is available, fall back to simulated responses
         if not self.client:
@@ -90,15 +94,34 @@ class StreamingLLMSimulator:
             return
 
         try:
+            # Format chat history for Anthropic API
+            messages = []
+
+            # Add chat history
+            for msg in chat_history:
+                role = "user" if msg.get("role") == "user" else "assistant"
+                # Extract text content from the message
+                content_parts = msg.get("content", [])
+                text_parts = []
+                for part in content_parts:
+                    if part.get("type") == "text":
+                        text_parts.append(part.get("text", ""))
+
+                if text_parts:
+                    messages.append({"role": role, "content": " ".join(text_parts)})
+
+            # Add current message
+            messages.append(
+                {
+                    "role": "user",
+                    "content": message,
+                }
+            )
+
             # Create a streaming response from Anthropic
             stream = await self.client.messages.create(
                 max_tokens=1024,
-                messages=[
-                    {
-                        "role": "user",
-                        "content": message,
-                    }
-                ],
+                messages=messages,
                 model=self.anthropic_model,
                 stream=True,
             )
@@ -191,8 +214,10 @@ async def process_message(
         mode = event.get("mode", "chat")
         message_content = event.get("message", {}).get("content", "")
         block_ids = event.get("block_ids", "")
+        chat_history = event.get("chat_history", [])
 
         logger.info(f"Processing message for block_ids: {block_ids}")
+        logger.info(f"Chat history length: {len(chat_history)}")
 
         # Create simulator
         simulator = StreamingLLMSimulator(model, mode == "agent")
@@ -217,7 +242,9 @@ async def process_message(
 
         # Stream the response
         try:
-            async for chunk in simulator.generate_streaming_response(message_content):
+            async for chunk in simulator.generate_streaming_response(
+                message_content, chat_history
+            ):
                 # Check if streaming is taking too long
                 if time.time() - start_time > MAX_PROCESS_TIME:
                     logger.warning(

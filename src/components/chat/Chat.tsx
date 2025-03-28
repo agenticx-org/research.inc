@@ -70,8 +70,8 @@ export function Chat() {
     // Add user message to the chat
     addUserMessage(message);
     
-    // Send the message via WebSocket
-    sendMessage(message, selectedModel, isAgent);
+    // Send the message via WebSocket with chat history
+    sendMessage(message, selectedModel, isAgent, messages);
     
     // Clear the input
     setMessage("");
