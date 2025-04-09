@@ -12,46 +12,7 @@ from anthropic import AsyncAnthropic
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Fallback fake responses for when API key is not available
-FAKE_RESPONSES = {
-    "default": [
-        "I'd be happy to help with that question. ",
-        "Based on my understanding, there are several key points to consider. ",
-        "First, it's essential to note that this topic has multiple aspects. ",
-        "Let me break this down step by step for better clarity. ",
-        "In conclusion, I hope this explanation helps you understand the concept better.",
-    ],
-    "code_example": [
-        "Here's an example of how you could implement this in Python:\n\n```python\n",
-        "def hello_world():\n",
-        "    print('Hello, world!')\n",
-        "    \n",
-        "# Call the function\n",
-        "hello_world()\n",
-        "```\n\nThis simple function demonstrates the basic concept.",
-    ],
-    "web_search": [
-        {
-            "type": "text",
-            "text": "I found some relevant information on the web. Here's what I discovered:",
-        },
-        {
-            "type": "element",
-            "element": {
-                "type": "web_search",
-                "content": {
-                    "title": "Example Search Result",
-                    "url": "https://example.com/result",
-                    "snippet": "This is a simulated web search result that would contain relevant information about your query.",
-                },
-            },
-        },
-        {"type": "text", "text": "This information should help answer your question."},
-    ],
-}
-
-
-class StreamingLLMSimulator:
+class StreamingLLM:
     """
     Handles streaming responses from Anthropic's Claude models.
     Falls back to simulated responses if API key is not available.
@@ -79,8 +40,6 @@ class StreamingLLMSimulator:
     ) -> AsyncGenerator[Dict[str, Any], None]:
         """
         Generate a streaming response using Anthropic's Claude API.
-        Falls back to simulated responses if API key is not available.
-        Returns chunks of content that mimic an LLM's streaming output.
 
         Args:
             message: The current user message
@@ -88,11 +47,8 @@ class StreamingLLMSimulator:
         """
         # If no API key is available, fall back to simulated responses
         if not self.client:
-            logger.warning("No Anthropic API key found, using simulated responses")
-            async for chunk in self._generate_simulated_response(message):
-                yield chunk
-            return
-
+            logger.warning("No Anthropic API key found")
+            yield {"type": "text", "text": "No Anthropic API key found"}
         try:
             # Format chat history for Anthropic API
             messages = []
@@ -123,11 +79,12 @@ class StreamingLLMSimulator:
                 max_tokens=1024,
                 messages=messages,
                 model=self.anthropic_model,
-                stream=True,
+                stream=True
             )
 
             # Process the streaming response
             async for event in stream:
+                print(event)
                 if event.type == "content_block_delta":
                     # Extract the text from the content block delta
                     yield {"type": "text", "text": event.delta.text}
@@ -148,47 +105,7 @@ class StreamingLLMSimulator:
             logger.error(f"Error using Anthropic API: {str(e)}")
             # Fall back to simulated responses in case of API error
             logger.info("Falling back to simulated responses")
-            async for chunk in self._generate_simulated_response(message):
-                yield chunk
-
-    async def _generate_simulated_response(
-        self, message: str
-    ) -> AsyncGenerator[Dict[str, Any], None]:
-        """Fallback method that generates simulated responses"""
-        # Determine response type based on content of message
-        if (
-            "code" in message.lower()
-            or "example" in message.lower()
-            or "function" in message.lower()
-        ):
-            response_type = "code_example"
-        elif self.is_agent and (
-            "search" in message.lower() or "find" in message.lower()
-        ):
-            response_type = "web_search"
-        else:
-            response_type = "default"
-
-        # Get the appropriate response template
-        response_chunks = FAKE_RESPONSES[response_type]
-
-        # For agent mode with complex response types (like web_search)
-        if isinstance(response_chunks[0], dict):
-            for chunk in response_chunks:
-                yield chunk
-                await asyncio.sleep(0.7)  # Slower for complex elements
-            return
-
-        # For text-based streaming responses
-        for chunk in response_chunks:
-            # For code blocks, we'll stream them faster
-            delay = 0.1 if response_type == "code_example" else random.uniform(0.2, 0.5)
-
-            # Yield the text chunk
-            yield {"type": "text", "text": chunk}
-
-            # Wait to simulate typing speed
-            await asyncio.sleep(delay)
+            yield {"type": "text", "text": f"Error using Anthropic API: {str(e)}"}
 
 
 async def process_message(
@@ -220,7 +137,7 @@ async def process_message(
         logger.info(f"Chat history length: {len(chat_history)}")
 
         # Create simulator
-        simulator = StreamingLLMSimulator(model, mode == "agent")
+        simulator = StreamingLLM(model, mode == "agent")
 
         logger.info(f"About to send thinking status")
 
