@@ -264,28 +264,30 @@ export default function AgentView({ agentId }: AgentViewProps) {
                     <div className="border-b border-b-default-200 flex items-center justify-between bg-white gap-x-3 px-3 h-[46px] font-medium">
                       <div>Argos Computer</div>
                     </div>
-                    <div className="mt-2 mx-2">
-                      <div className="flex items-center gap-2 p-3 bg-zinc-50 border rounded-lg">
-                        <div className="min-w-2 h-2 w-2 rounded-full bg-zinc-300 animate-pulse" />
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          Argos isn&apos;t currently executing any command...
+                    <div className="flex-1 relative overflow-y-auto scrollbar-custom overflow-x-hidden">
+                      <div className="mt-2 mx-2">
+                        <div className="flex items-center gap-2 p-3 bg-zinc-50 border rounded-lg">
+                          <div className="min-w-2 h-2 w-2 rounded-full bg-zinc-300 animate-pulse" />
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            Argos isn&apos;t currently executing any command...
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="flex-1 w-full rounded-md my-2">
-                      <div className="h-full border rounded-lg mx-2 p-3">
-                        <LetterGlitch
-                          glitchSpeed={90}
-                          glitchColors={[
-                            "#000000",
-                            "#333333",
-                            "#666666",
-                            "#999999",
-                          ]}
-                          centerVignette={false}
-                          outerVignette={false}
-                          smooth={true}
-                        />
+                      <div className="flex-1 w-full rounded-md my-2">
+                        <div className="h-full border rounded-lg mx-2 p-3">
+                          <LetterGlitch
+                            glitchSpeed={90}
+                            glitchColors={[
+                              "#000000",
+                              "#333333",
+                              "#666666",
+                              "#999999",
+                            ]}
+                            centerVignette={false}
+                            outerVignette={false}
+                            smooth={true}
+                          />
+                        </div>
                       </div>
                     </div>
                     <div className="mx-2 mb-2">
