@@ -26,7 +26,6 @@ import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import {
   ArrowRight,
-  ArrowUpRight,
   Checks,
   Paperclip,
   SignOut,
@@ -186,29 +185,6 @@ export default function AgentView({ agentId }: AgentViewProps) {
               <div className="w-full transition-all duration-200 h-[calc(100vh-48px)] mt-[48px] overflow-hidden relative editor-container flex flex-col">
                 <div className="flex-1 overflow-y-auto no-scrollbar">
                   {/* Content goes here */}
-                </div>
-                <div className="px-2 pt-2">
-                  <div className="grid grid-cols-2 gap-2">
-                    {[
-                      "Do a competitive analysis between Volkswagen and Toyota vehicles",
-                      "Create a professional presentation deck on climate change initiatives",
-                      "Analyze the latest quarterly earnings report for Tesla",
-                      "Write a content marketing strategy for a fintech startup",
-                    ].map((text, index) => (
-                      <button
-                        key={index}
-                        className="flex items-start gap-2 p-3 py-1.5 text-left bg-zinc-50 hover:bg-zinc-100 rounded-lg transition-colors duration-200"
-                        onClick={() => setMessage(text)}
-                      >
-                        <div className="flex items-center pt-0.5">
-                          <ArrowUpRight className="size-3.5" weight="regular" />
-                        </div>
-                        <span className="text-[11px] text-default-700">
-                          {text}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
                 </div>
                 <div className="px-2 py-2 bg-background">
                   <PromptInput
