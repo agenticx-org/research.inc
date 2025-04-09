@@ -185,7 +185,17 @@ export default function AgentView({ agentId }: AgentViewProps) {
             >
               <div className="w-full transition-all duration-200 h-[calc(100vh-48px)] mt-[48px] overflow-hidden relative editor-container flex flex-col">
                 <div className="flex-1 overflow-y-auto no-scrollbar">
-                  {/* Content goes here */}
+                  <div className="flex flex-col items-center justify-center h-full">
+                    <div className="mb-8">
+                      <Image
+                        src="/research.svg"
+                        height={100}
+                        width={100}
+                        alt="research.inc logo"
+                        className="opacity-10 filter grayscale"
+                      />
+                    </div>
+                  </div>
                 </div>
                 <div className="px-2 pt-2">
                   <div className="grid grid-cols-2 gap-2">
