@@ -4,7 +4,6 @@ const nextConfig: NextConfig = {
   experimental: {
     reactCompiler: true,
   },
-  devIndicators: false,
 };
 
 export default nextConfig;
