@@ -5,7 +5,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { useChatStore } from "@/store/chat-store";
 import {
   Code as CodeIcon,
   Link as LinkIcon,
@@ -14,100 +13,20 @@ import {
   TextStrikethrough,
   TextUnderline,
 } from "@phosphor-icons/react";
-import { BubbleMenu, Editor } from "@tiptap/react";
-import { useEffect, useState } from "react";
-
-// Import SELECTION_COLORS from the store
-import { SELECTION_COLORS } from "@/store/chat-store";
+import { Editor } from "@tiptap/react";
+import { BubbleMenu } from "@tiptap/react/menus";
+import { useEffect } from "react";
 
 interface EditorBubbleMenuProps {
   editor: Editor;
 }
 
 export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
-  const { setMessageAndTogglePanel, addSelectedText, selectedTextItems } =
-    useChatStore();
-  const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
-
-  // Add keyboard shortcut for Command+L to add selected text to chat
+  // Add keyboard shortcut for Command+K for Edit functionality
   useEffect(() => {
     if (!editor) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "l" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        const { from, to } = editor.state.selection;
-
-        // Get the selected text with proper handling of paragraph boundaries
-        let selectedText = "";
-
-        // Get the resolved positions to check if we're crossing paragraph boundaries
-        const $from = editor.state.doc.resolve(from);
-        const $to = editor.state.doc.resolve(to);
-
-        // Check if the selection spans multiple blocks
-        const sameBlock =
-          $from.sameParent($to) &&
-          $from.parent.type.name === $to.parent.type.name;
-
-        // If we're in the same block, get the text directly
-        if (sameBlock) {
-          selectedText = editor.state.doc.textBetween(from, to, " ");
-        } else {
-          // For multi-block selections, use the fragment approach
-          const fragment = editor.state.doc.slice(from, to).content;
-
-          // Iterate through the fragment to properly handle paragraphs
-          fragment.forEach((node) => {
-            if (selectedText && node.type.name === "paragraph") {
-              selectedText += "\n\n"; // Add paragraph breaks
-            }
-            selectedText += node.textContent;
-          });
-        }
-
-        // If no content, fall back to simple text extraction
-        if (!selectedText) {
-          selectedText = editor.state.doc.textBetween(from, to, " ");
-        }
-
-        if (selectedText && selectedText.trim()) {
-          // Check if this is a duplicate
-          const isDuplicate = selectedTextItems.some(
-            (item) => item.text === selectedText.trim()
-          );
-
-          if (isDuplicate) {
-            // Show duplicate warning
-            setShowDuplicateWarning(true);
-            setTimeout(() => setShowDuplicateWarning(false), 2000);
-          } else {
-            // Generate a unique ID for this selection
-            const id = Date.now().toString();
-
-            // Calculate the color index based on current selections
-            const colorIndex =
-              selectedTextItems.length % SELECTION_COLORS.length;
-            const colorClass = SELECTION_COLORS[colorIndex];
-
-            // If text is selected, add it to chat and open panel
-            addSelectedText(selectedText, id, colorClass, from, to);
-
-            // Also toggle the panel
-            const event = new CustomEvent("toggleChatPanel", {
-              detail: { shouldOpen: true, forceToggle: false },
-            });
-            window.dispatchEvent(event);
-          }
-        } else {
-          // If no text is selected, just toggle the panel with empty message
-          const event = new CustomEvent("toggleChatPanel", {
-            detail: { shouldOpen: false, forceToggle: true },
-          });
-          window.dispatchEvent(event);
-        }
-      }
-
       // Add Command+K shortcut for Edit functionality
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
@@ -117,7 +36,7 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [editor, setMessageAndTogglePanel, selectedTextItems, addSelectedText]);
+  }, [editor]);
 
   if (!editor) return null;
 
@@ -138,77 +57,6 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
 
     // update link
     editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
-  };
-
-  const handleAddToChat = () => {
-    const { from, to } = editor.state.selection;
-
-    // Get the selected text with proper handling of paragraph boundaries
-    let selectedText = "";
-
-    // Get the resolved positions to check if we're crossing paragraph boundaries
-    const $from = editor.state.doc.resolve(from);
-    const $to = editor.state.doc.resolve(to);
-
-    // Check if the selection spans multiple blocks
-    const sameBlock =
-      $from.sameParent($to) && $from.parent.type.name === $to.parent.type.name;
-
-    // If we're in the same block, get the text directly
-    if (sameBlock) {
-      selectedText = editor.state.doc.textBetween(from, to, " ");
-    } else {
-      // For multi-block selections, use the fragment approach
-      const fragment = editor.state.doc.slice(from, to).content;
-
-      // Iterate through the fragment to properly handle paragraphs
-      fragment.forEach((node) => {
-        if (selectedText && node.type.name === "paragraph") {
-          selectedText += "\n\n"; // Add paragraph breaks
-        }
-        selectedText += node.textContent;
-      });
-    }
-
-    // If no content, fall back to simple text extraction
-    if (!selectedText) {
-      selectedText = editor.state.doc.textBetween(from, to, " ");
-    }
-
-    if (selectedText && selectedText.trim()) {
-      // Check if this is a duplicate
-      const isDuplicate = selectedTextItems.some(
-        (item) => item.text === selectedText.trim()
-      );
-
-      if (isDuplicate) {
-        // Show duplicate warning
-        setShowDuplicateWarning(true);
-        setTimeout(() => setShowDuplicateWarning(false), 2000);
-      } else {
-        // Generate a unique ID for this selection
-        const id = Date.now().toString();
-
-        // Calculate the color index based on current selections
-        const colorIndex = selectedTextItems.length % SELECTION_COLORS.length;
-        const colorClass = SELECTION_COLORS[colorIndex];
-
-        // Use addSelectedText directly to add a new selection with position information
-        addSelectedText(selectedText, id, colorClass, from, to);
-
-        // Also toggle the panel to show it's been added
-        const event = new CustomEvent("toggleChatPanel", {
-          detail: { shouldOpen: true, forceToggle: false },
-        });
-        window.dispatchEvent(event);
-      }
-    } else {
-      // If no text is selected, just toggle the panel
-      const event = new CustomEvent("toggleChatPanel", {
-        detail: { shouldOpen: false, forceToggle: true },
-      });
-      window.dispatchEvent(event);
-    }
   };
 
   // Add handleEdit function
@@ -259,48 +107,14 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
   return (
     <BubbleMenu
       editor={editor}
-      tippyOptions={{
-        duration: 100,
-        animation: "shift-away",
+      options={{
+        strategy: "absolute",
+        placement: "top",
       }}
-      className="flex overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md min-w-[290px]"
+      className="flex overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md"
     >
       <TooltipProvider delayDuration={0}>
         <div className="flex items-center gap-1 p-1">
-          {/* Add to Chat button */}
-          <div className="relative">
-            <button
-              onClick={handleAddToChat}
-              className="px-2 py-1 rounded text-xs font-medium transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-            >
-              Add to Chat
-              <span className="ml-1 text-[10px] text-gray-500 font-normal">
-                ⌘L
-              </span>
-            </button>
-
-            {/* Duplicate warning tooltip */}
-            {showDuplicateWarning && (
-              <div className="absolute top-full left-0 mt-1 px-2 py-1 bg-amber-100 text-amber-800 text-xs rounded border border-amber-200 whitespace-nowrap z-50">
-                This text is already selected
-              </div>
-            )}
-          </div>
-
-          {/* Edit button - new */}
-          {/* <button
-            onClick={handleEdit}
-            className="px-2 py-1 rounded text-xs font-medium transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-          >
-            Edit
-            <span className="ml-1 text-[10px] text-gray-500 font-normal">
-              ⌘K
-            </span>
-          </button> */}
-
-          {/* Separator - moved after both buttons */}
-          <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-1" />
-
           {/* Formatting options */}
           <Tooltip>
             <TooltipTrigger asChild>

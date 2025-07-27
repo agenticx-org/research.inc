@@ -8,7 +8,6 @@ import {
 } from "@/components/chat/PromptInput";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useChatStore } from "@/store/chat-store";
 import { ModelId } from "@/types/chat";
 import {
   ArrowRight,
@@ -16,7 +15,6 @@ import {
   Infinity,
   Paperclip,
   Square,
-  X,
 } from "@phosphor-icons/react";
 import { useState } from "react";
 import { ModelSelector } from "./ModelSelector";
@@ -43,8 +41,6 @@ export function ChatInput({
   onModeChange,
 }: ChatInputProps) {
   const [isAgent, setIsAgent] = useState(true);
-  const { selectedTextItems, removeSelectedText, clearSelectedTexts } =
-    useChatStore();
 
   const handleModeChange = (checked: boolean) => {
     setIsAgent(checked);
@@ -53,10 +49,7 @@ export function ChatInput({
 
   const handleSubmit = () => {
     onSubmit();
-    clearSelectedTexts();
   };
-
-  const hasSelectedItems = selectedTextItems.length > 0;
 
   return (
     <div className="w-full px-2 pt-2 pb-2">
@@ -97,74 +90,12 @@ export function ChatInput({
         </div>
       </div>
 
-      {hasSelectedItems && (
-        <div className="border rounded-t border-b-0 p-2 bg-zinc-50">
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-xs font-medium text-gray-500">
-              {selectedTextItems.length} selection
-              {selectedTextItems.length !== 1 ? "s" : ""}
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 text-xs"
-              onClick={clearSelectedTexts}
-            >
-              Clear all
-            </Button>
-          </div>
-
-          <div className="flex flex-col gap-2 max-h-[150px] overflow-y-auto">
-            {selectedTextItems.map((item) => (
-              <div
-                key={item.id}
-                className={cn(
-                  "relative px-2 py-1 rounded border text-xs flex items-center group"
-                )}
-              >
-                <div
-                  className={cn(
-                    "w-3 h-3 rounded-full mr-2 mt-0.5 flex-shrink-0",
-                    item.color.includes("blue")
-                      ? "bg-blue-400"
-                      : item.color.includes("green")
-                      ? "bg-green-400"
-                      : item.color.includes("purple")
-                      ? "bg-purple-400"
-                      : item.color.includes("amber")
-                      ? "bg-amber-400"
-                      : item.color.includes("rose")
-                      ? "bg-rose-400"
-                      : item.color.includes("teal")
-                      ? "bg-teal-400"
-                      : item.color.includes("indigo")
-                      ? "bg-indigo-400"
-                      : item.color.includes("orange")
-                      ? "bg-orange-400"
-                      : "bg-gray-400"
-                  )}
-                />
-                <div className="flex-1 pr-4 truncate">{item.text}</div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-5 w-5 a opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={() => removeSelectedText(item.id)}
-                >
-                  <X className="size-3" />
-                </Button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       <PromptInput
         isLoading={isLoading}
         value={message}
         onValueChange={onMessageChange}
         onSubmit={handleSubmit}
-        className={cn("bg-white", hasSelectedItems && "rounded-t-none")}
+        className="bg-white"
       >
         <PromptInputTextarea
           placeholder="Ask me to do anything..."
@@ -200,7 +131,7 @@ export function ChatInput({
               size="icon"
               className="h-7 w-7"
               onClick={handleSubmit}
-              disabled={!message.trim() && !hasSelectedItems}
+              disabled={!message.trim()}
             >
               {isLoading ? (
                 <Square className="size-4 fill-current" weight="fill" />

@@ -3,28 +3,6 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 
-// Define a type for selected text items with color
-interface SelectedTextItem {
-  id: string;
-  text: string;
-  color: string;
-  from?: number;
-  to?: number;
-  path?: number[];
-}
-
-// Array of colors to cycle through for selections
-export const SELECTION_COLORS = [
-  "bg-blue-50 border-blue-200",
-  "bg-green-50 border-green-200",
-  "bg-purple-50 border-purple-200",
-  "bg-amber-50 border-amber-200",
-  "bg-rose-50 border-rose-200",
-  "bg-teal-50 border-teal-200",
-  "bg-indigo-50 border-indigo-200",
-  "bg-orange-50 border-orange-200",
-];
-
 interface ChatState {
   // State
   message: string;
@@ -33,7 +11,6 @@ interface ChatState {
   selectedModel: ModelId;
   messages: Message[];
   isAgent: boolean;
-  selectedTextItems: SelectedTextItem[];
 
   // Actions
   setMessage: (message: string) => void;
@@ -47,23 +24,7 @@ interface ChatState {
   addAgentResponse: (content: MessageContent[]) => void;
   clearMessages: () => void;
   setIsAgent: (isAgent: boolean) => void;
-  setMessageAndTogglePanel: (
-    message: string,
-    isSelectedText?: boolean,
-    from?: number,
-    to?: number,
-    path?: number[]
-  ) => void;
-  addSelectedText: (
-    text: string,
-    id?: string,
-    color?: string,
-    from?: number,
-    to?: number,
-    path?: number[]
-  ) => void;
-  removeSelectedText: (id: string) => void;
-  clearSelectedTexts: () => void;
+  setMessageAndTogglePanel: (message: string) => void;
 
   // Handlers
   handleSubmit: () => void;
@@ -77,10 +38,9 @@ export const useChatStore = create<ChatState>()(
       message: "",
       isLoading: false,
       files: [],
-      selectedModel: "claude3.7" as ModelId,
+      selectedModel: "claude-sonnet-4" as ModelId,
       messages: [],
       isAgent: true,
-      selectedTextItems: [],
 
       // Actions
       setMessage: (message: string) => set({ message }),
@@ -113,71 +73,8 @@ export const useChatStore = create<ChatState>()(
       clearMessages: () => set({ messages: [] }),
       setIsAgent: (isAgent: boolean) => set({ isAgent }),
 
-      // Add a new selected text item with a unique color
-      addSelectedText: (
-        text: string,
-        id?: string,
-        color?: string,
-        from?: number,
-        to?: number,
-        path?: number[]
-      ) =>
-        set((state) => {
-          const trimmedText = text.trim();
-          if (trimmedText) {
-            // Check if this exact text already exists in the selections
-            const isDuplicate = state.selectedTextItems.some(
-              (item) => item.text === trimmedText
-            );
-
-            // Only add if it's not a duplicate
-            if (!isDuplicate) {
-              const colorIndex =
-                state.selectedTextItems.length % SELECTION_COLORS.length;
-              state.selectedTextItems.push({
-                id: id || Date.now().toString(),
-                text: trimmedText,
-                color: color || SELECTION_COLORS[colorIndex],
-                from,
-                to,
-                path,
-              });
-            }
-          }
-        }),
-
-      // Remove a selected text item by id
-      removeSelectedText: (id: string) =>
-        set((state) => {
-          state.selectedTextItems = state.selectedTextItems.filter(
-            (item) => item.id !== id
-          );
-        }),
-
-      // Clear all selected text items
-      clearSelectedTexts: () => set({ selectedTextItems: [] }),
-
-      setMessageAndTogglePanel: (
-        message: string,
-        isSelectedText = false,
-        from?: number,
-        to?: number,
-        path?: number[]
-      ) => {
-        if (isSelectedText) {
-          // Generate a unique ID for this selection
-          const id = Date.now().toString();
-
-          // Calculate the color index based on current selections
-          const { selectedTextItems } = get();
-          const colorIndex = selectedTextItems.length % SELECTION_COLORS.length;
-          const colorClass = SELECTION_COLORS[colorIndex];
-
-          // Add the selected text with position information
-          get().addSelectedText(message, id, colorClass, from, to, path);
-        } else {
-          set({ message });
-        }
+      setMessageAndTogglePanel: (message: string) => {
+        set({ message });
         // This is a custom event to toggle the panel visibility
         const event = new CustomEvent("toggleChatPanel", {
           detail: {
@@ -190,29 +87,17 @@ export const useChatStore = create<ChatState>()(
 
       // Handlers
       handleSubmit: () => {
-        const { message, files, selectedTextItems } = get();
+        const { message, files } = get();
 
-        // Combine all selected texts with the message
-        let textToSend = message;
-
-        if (selectedTextItems.length > 0) {
-          const selectedTextsContent = selectedTextItems
-            .map((item) => item.text)
-            .join("\n\n");
-
-          textToSend = selectedTextsContent + (message ? `\n\n${message}` : "");
-        }
-
-        if (textToSend.trim() || files.length > 0) {
+        if (message.trim() || files.length > 0) {
           // Add user message
           set((state) => {
             state.messages.push({
               role: "user",
-              content: [{ type: "text", text: textToSend }],
+              content: [{ type: "text", text: message }],
             });
             state.isLoading = true;
             state.message = "";
-            state.selectedTextItems = [];
             state.files = [];
           });
 

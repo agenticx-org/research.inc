@@ -49,10 +49,4 @@ export interface ModelOption {
   description: string;
 }
 
-export type ModelId =
-  | "gemini-flash2"
-  | "claude3.7"
-  | "claude3.7-reasoning"
-  | "gpt4"
-  | "o3mini"
-  | "deepseek";
+export type ModelId = "claude-sonnet-4" | "kimi-k2";

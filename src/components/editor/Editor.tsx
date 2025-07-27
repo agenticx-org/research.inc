@@ -1,6 +1,5 @@
 "use client";
 
-import { useChatStore } from "@/store/chat-store";
 import { useEditorStore } from "@/store/editor-store";
 import CharacterCount from "@tiptap/extension-character-count";
 import Code from "@tiptap/extension-code";
@@ -12,12 +11,12 @@ import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import TextAlign from "@tiptap/extension-text-align";
-import TextStyle from "@tiptap/extension-text-style";
+import { TextStyleKit } from "@tiptap/extension-text-style";
 import Underline from "@tiptap/extension-underline";
 import Youtube from "@tiptap/extension-youtube";
 import { useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import GlobalDragHandle from "tiptap-extension-global-drag-handle";
 import tunnel from "tunnel-rat";
 import {
@@ -30,7 +29,6 @@ import {
 import { WordCountDisplay } from "./components/WordCountDisplay";
 import { EditorContent } from "./EditorContent";
 import { EditorToolbar } from "./EditorToolbar";
-import { SelectionHighlight } from "./extensions/SelectionHighlight";
 import { handleCommandNavigation } from "./extensions/SlashCommand";
 import { EditorBubbleMenu } from "./tools";
 import { slashCommand, suggestionItems } from "./tools/SlashCommand";
@@ -39,7 +37,6 @@ import { slashCommand, suggestionItems } from "./tools/SlashCommand";
 const commandTunnel = tunnel();
 
 const Editor = () => {
-  const { selectedTextItems, removeSelectedText } = useChatStore();
   const [wordCount, setWordCount] = useState(0);
   const [charCount, setCharCount] = useState(0);
 
@@ -47,14 +44,13 @@ const Editor = () => {
     immediatelyRender: false,
     extensions: [
       StarterKit,
-      TextStyle,
+      TextStyleKit,
       FontFamily,
       FontSize,
       Underline,
-      TextStyle.configure(),
+      TextStyleKit.configure(),
       Color.configure(),
       CharacterCount,
-      SelectionHighlight,
       slashCommand,
       GlobalDragHandle,
       Code.configure({
@@ -98,6 +94,10 @@ const Editor = () => {
       }),
     ],
     content: "",
+    onUpdate: ({ editor }) => {
+      setWordCount(editor.storage.characterCount.words() || 0);
+      setCharCount(editor.storage.characterCount.characters() || 0);
+    },
     editorProps: {
       attributes: {
         class:
@@ -107,167 +107,7 @@ const Editor = () => {
         keydown: (_view, event) => handleCommandNavigation(event),
       },
     },
-    onUpdate: ({ editor }) => {
-      // Check if any highlighted text has been deleted
-      if (selectedTextItems.length > 0) {
-        const currentContent = editor.state.doc.textContent;
-
-        // Check each selected text item to see if it still exists in the document
-        selectedTextItems.forEach((item) => {
-          const itemText = item.text.trim();
-
-          // If the text no longer exists in the document, remove it from the store
-          if (!currentContent.includes(itemText)) {
-            removeSelectedText(item.id);
-          }
-        });
-      }
-    },
   });
-
-  // Update word and character counts when editor content changes
-  useEffect(() => {
-    if (!editor) return;
-
-    // Function to update counts
-    const updateCounts = () => {
-      setWordCount(editor.storage.characterCount.words());
-      setCharCount(editor.storage.characterCount.characters());
-    };
-
-    // Update counts initially
-    updateCounts();
-
-    // Add event listeners for content changes
-    editor.on("update", updateCounts);
-
-    return () => {
-      // Clean up event listeners
-      editor.off("update", updateCounts);
-    };
-  }, [editor]);
-
-  // Sync selected text items with editor highlights
-  useEffect(() => {
-    if (!editor) return;
-
-    // Clear all highlights first
-    editor.commands.clearHighlights();
-
-    // Add highlights for each selected text item
-    selectedTextItems.forEach((item) => {
-      // If we have stored position information, use it directly
-      if (item.from !== undefined && item.to !== undefined) {
-        // Verify the positions are still valid in the current document
-        const docSize = editor.state.doc.content.size;
-        if (item.from >= 0 && item.to <= docSize) {
-          // Check if the text at these positions matches our stored text
-          const textAtPos = editor.state.doc.textBetween(
-            item.from,
-            item.to,
-            " "
-          );
-          if (textAtPos.trim() === item.text.trim()) {
-            // Positions are valid and text matches, use them directly
-            editor.commands.addHighlight(
-              { id: item.id, color: item.color },
-              item.from,
-              item.to
-            );
-            return;
-          }
-        }
-      }
-
-      // If we don't have position info or it's invalid, fall back to text search
-      // Find the text in the document
-      const doc = editor.state.doc;
-      const itemText = item.text.trim();
-
-      // More precise text search that respects paragraph boundaries
-      let found = false;
-
-      // Search for the text in each paragraph separately
-      doc.forEach((node, offset) => {
-        if (found) return;
-
-        // Only search in paragraph nodes
-        if (node.type.name === "paragraph") {
-          const nodeText = node.textContent;
-
-          // If this paragraph contains the exact text we're looking for
-          if (nodeText.trim() === itemText) {
-            // Highlight the entire paragraph
-            editor.commands.addHighlight(
-              { id: item.id, color: item.color },
-              offset,
-              offset + node.nodeSize - 1 // -1 to exclude the end token
-            );
-            found = true;
-            return;
-          }
-
-          // If this paragraph contains the text as a substring
-          const startPos = nodeText.indexOf(itemText);
-          if (startPos !== -1) {
-            // Make sure it's a complete word or phrase
-            const from = offset + startPos;
-            const to = from + itemText.length;
-
-            editor.commands.addHighlight(
-              { id: item.id, color: item.color },
-              from,
-              to
-            );
-            found = true;
-            return;
-          }
-        }
-      });
-
-      // Fallback to the old method if not found by node search
-      if (!found) {
-        const content = doc.textContent;
-        const foundIndex = content.indexOf(itemText);
-
-        if (foundIndex !== -1) {
-          editor.commands.addHighlight(
-            { id: item.id, color: item.color },
-            foundIndex,
-            foundIndex + itemText.length
-          );
-        }
-      }
-    });
-  }, [editor, selectedTextItems]);
-
-  // Add event listener for removeHighlight custom event
-  useEffect(() => {
-    if (!editor) return;
-
-    const handleRemoveHighlight = (event: CustomEvent) => {
-      const { highlightId } = event.detail;
-      if (highlightId) {
-        // Remove the item from the store
-        removeSelectedText(highlightId);
-      }
-    };
-
-    // Add event listener to the editor DOM element
-    const editorElement = editor.view.dom;
-    editorElement.addEventListener(
-      "removeHighlight",
-      handleRemoveHighlight as EventListener
-    );
-
-    // Clean up the event listener when the component unmounts
-    return () => {
-      editorElement.removeEventListener(
-        "removeHighlight",
-        handleRemoveHighlight as EventListener
-      );
-    };
-  }, [editor, removeSelectedText]);
 
   return (
     <EditorCommandTunnelContext.Provider value={commandTunnel}>
