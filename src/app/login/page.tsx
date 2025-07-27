@@ -2,7 +2,7 @@
 
 import Waves from "@/components/animation/Waves";
 import { Button } from "@/components/ui/button";
-import { authClient } from "@/lib/auth-client";
+import { useAuthActions } from "@convex-dev/auth/react";
 import { Shuffle, SpinnerGap } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
 import Image from "next/image";
@@ -18,6 +18,7 @@ function getRandomColor() {
 const LoginPage = () => {
   const [lineColor, setLineColor] = useState("rgba(265, 250, 247, 0.5)");
   const [isLoading, setIsLoading] = useState(false);
+  const { signIn } = useAuthActions();
 
   const handleRandomizeColor = () => {
     setLineColor(getRandomColor());
@@ -26,10 +27,7 @@ const LoginPage = () => {
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true);
-      await authClient.signIn.social({
-        provider: "google",
-        callbackURL: "/",
-      });
+      signIn("google", {});
     } catch (error) {
       console.error("Google sign-in failed:", error);
       setIsLoading(false);
